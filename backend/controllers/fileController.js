@@ -2,6 +2,7 @@ import cloudinary from '../utils/cloudinary.js';
 import File from '../models/File.js';
 import { Readable } from 'stream';
 
+// 📤 Upload File Controller
 export const uploadFile = async (req, res) => {
   try {
     if (!req.file) {
@@ -26,6 +27,7 @@ export const uploadFile = async (req, res) => {
         const file = await File.create({
           filename: req.file.originalname,
           url: result.secure_url,
+          public_id: result.public_id, // ✅ Store for deletion
           type: req.file.mimetype,
           userId: req.userId,
         });
@@ -40,7 +42,8 @@ export const uploadFile = async (req, res) => {
     res.status(500).json({ error: 'Upload failed' });
   }
 };
-// Delete file controller
+
+// 🗑️ Delete File Controller
 export const deleteFile = async (req, res) => {
   try {
     const fileId = req.params.id;
@@ -54,10 +57,14 @@ export const deleteFile = async (req, res) => {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    // Delete from Cloudinary
-    await cloudinary.uploader.destroy(file.public_id, {
-      resource_type: 'auto',
-    });
+    // ✅ Safely delete from Cloudinary if public_id exists
+    if (file.public_id) {
+      await cloudinary.uploader.destroy(file.public_id, {
+        resource_type: 'auto',
+      });
+    } else {
+      console.warn(`⚠️ File ${file.filename} has no public_id. Skipping Cloudinary delete.`);
+    }
 
     // Delete from MongoDB
     await File.findByIdAndDelete(fileId);
@@ -69,11 +76,10 @@ export const deleteFile = async (req, res) => {
   }
 };
 
-// Controller: Get all files uploaded by the authenticated user
+// 📄 Get User Files Controller
 export const getUserFiles = async (req, res) => {
   try {
-    const userId = req.userId;
-    const files = await File.find({ userId }).sort({ createdAt: -1 });
+    const files = await File.find({ userId: req.userId }).sort({ createdAt: -1 });
     res.status(200).json(files);
   } catch (err) {
     console.error('❌ Get files error:', err);
