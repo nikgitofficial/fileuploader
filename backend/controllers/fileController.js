@@ -40,3 +40,33 @@ export const uploadFile = async (req, res) => {
     res.status(500).json({ error: 'Upload failed' });
   }
 };
+
+
+// Delete file controller
+export const deleteFile = async (req, res) => {
+  try {
+    const fileId = req.params.id;
+    const file = await File.findById(fileId);
+
+    if (!file) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    if (file.userId.toString() !== req.userId) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    // Delete from Cloudinary
+    await cloudinary.uploader.destroy(file.public_id, {
+      resource_type: 'auto',
+    });
+
+    // Delete from MongoDB
+    await File.findByIdAndDelete(fileId);
+
+    res.status(200).json({ message: 'File deleted successfully' });
+  } catch (err) {
+    console.error('❌ Delete error:', err);
+    res.status(500).json({ error: 'Failed to delete file' });
+  }
+};
