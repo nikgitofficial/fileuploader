@@ -1,7 +1,6 @@
 import multer from 'multer';
-import path from 'path';
 
-const storage = multer.diskStorage({
-  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
-});
+// ✅ Use memory storage so we can stream file.buffer to Cloudinary
+const storage = multer.memoryStorage();
+
 export const upload = multer({ storage });
