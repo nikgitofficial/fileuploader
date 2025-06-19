@@ -1,31 +1,42 @@
 import cloudinary from '../utils/cloudinary.js';
 import File from '../models/File.js';
+import { Readable } from 'stream';
 
 export const uploadFile = async (req, res) => {
   try {
-    const result = await cloudinary.uploader.upload(req.file.path);
-    const file = await File.create({
-      filename: req.file.originalname,
-      url: result.secure_url,
-      type: req.file.mimetype,
-      userId: req.userId,
-    });
-    res.status(201).json(file);
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const bufferToStream = (buffer) => {
+      const readable = new Readable();
+      readable.push(buffer);
+      readable.push(null);
+      return readable;
+    };
+
+    const stream = cloudinary.uploader.upload_stream(
+      { resource_type: 'auto' },
+      async (error, result) => {
+        if (error) {
+          console.error('❌ Cloudinary upload error:', error);
+          return res.status(500).json({ error: 'Upload failed' });
+        }
+
+        const file = await File.create({
+          filename: req.file.originalname,
+          url: result.secure_url,
+          type: req.file.mimetype,
+          userId: req.userId,
+        });
+
+        res.status(201).json(file);
+      }
+    );
+
+    bufferToStream(req.file.buffer).pipe(stream);
   } catch (err) {
+    console.error('❌ Upload error:', err);
     res.status(500).json({ error: 'Upload failed' });
   }
-};
-
-export const getUserFiles = async (req, res) => {
-  const files = await File.find({ userId: req.userId }).sort({ uploadedAt: -1 });
-  res.json(files);
-};
-
-export const deleteFile = async (req, res) => {
-  const file = await File.findOne({ _id: req.params.id, userId: req.userId });
-  if (!file) return res.status(404).json({ error: 'Not found' });
-
-  await cloudinary.uploader.destroy(file.url.split('/').pop().split('.')[0]);
-  await File.findByIdAndDelete(file._id);
-  res.json({ message: 'Deleted' });
 };
