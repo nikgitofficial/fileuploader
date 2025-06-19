@@ -40,8 +40,6 @@ export const uploadFile = async (req, res) => {
     res.status(500).json({ error: 'Upload failed' });
   }
 };
-
-
 // Delete file controller
 export const deleteFile = async (req, res) => {
   try {
@@ -68,5 +66,17 @@ export const deleteFile = async (req, res) => {
   } catch (err) {
     console.error('❌ Delete error:', err);
     res.status(500).json({ error: 'Failed to delete file' });
+  }
+};
+
+// Controller: Get all files uploaded by the authenticated user
+export const getUserFiles = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const files = await File.find({ userId }).sort({ createdAt: -1 });
+    res.status(200).json(files);
+  } catch (err) {
+    console.error('❌ Get files error:', err);
+    res.status(500).json({ error: 'Failed to retrieve files' });
   }
 };
