@@ -6,6 +6,7 @@ import cors from 'cors';
 import authRoutes from './routes/authRoutes.js';
 import fileRoutes from './routes/fileRoutes.js';
 import youtubeRoutes from './routes/youtube.js';
+import adminRoutes from './routes/adminRoutes.js';
 dotenv.config();
 const app = express();
 
@@ -35,6 +36,7 @@ app.use(cors({
 app.use('/api/auth', authRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/youtube', youtubeRoutes)
+app.use('/api/admin', adminRoutes);
 
 // ✅ 4. Connect to DB and start server
 mongoose.connect(process.env.MONGODB_URI, {
