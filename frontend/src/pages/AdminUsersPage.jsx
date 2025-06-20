@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react';
 import {
-  Container, Typography, Table, TableHead, TableBody, TableCell, TableRow, Paper, TableContainer
+  Container,
+  Typography,
+  Table,
+  TableHead,
+  TableBody,
+  TableCell,
+  TableRow,
+  Paper,
+  TableContainer,
 } from '@mui/material';
 import axios from '../api/axios';
 
@@ -25,12 +33,20 @@ const AdminUsersPage = () => {
   }, []);
 
   return (
-    <Container sx={{ mt: 6 }}>
-      <Typography variant="h5" gutterBottom>
+    <Container sx={{ mt: 10, mb: 10 }}>
+      <Typography variant="h5" gutterBottom textAlign="center">
         👤 Registered Users
       </Typography>
-      <TableContainer component={Paper}>
-        <Table>
+
+      <TableContainer
+        component={Paper}
+        sx={{
+          mt: 3,
+          maxHeight: 400,
+          overflow: 'auto',
+        }}
+      >
+        <Table stickyHeader>
           <TableHead sx={{ backgroundColor: '#f0f0f0' }}>
             <TableRow>
               <TableCell><strong>Email</strong></TableCell>
@@ -44,8 +60,8 @@ const AdminUsersPage = () => {
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{user.role}</TableCell>
                 <TableCell>
-  {user.createdAt ? new Date(user.createdAt).toLocaleString() : 'N/A'}
-</TableCell>
+                  {user.createdAt ? new Date(user.createdAt).toLocaleString() : 'N/A'}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

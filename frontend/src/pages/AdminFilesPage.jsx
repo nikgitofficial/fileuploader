@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
-  Container, Typography, Table, TableHead, TableBody, TableCell, TableRow, Paper, TableContainer
+  Container, Typography, Table, TableHead, TableBody,
+  TableCell, TableRow, Paper, TableContainer
 } from '@mui/material';
 import axios from '../api/axios';
 
@@ -25,11 +26,17 @@ const AdminFilesPage = () => {
   }, []);
 
   return (
-    <Container sx={{ mt: 6 }}>
-      <Typography variant="h5" gutterBottom>
+    <Container
+      sx={{
+        mt: 10, // margin from top to clear navbar
+        mb: 10, // margin from bottom to clear footer
+      }}
+    >
+      <Typography variant="h5" gutterBottom textAlign="center">
         📁 All Uploaded Files
       </Typography>
-      <TableContainer component={Paper}>
+
+      <TableContainer component={Paper} sx={{ mt: 3 }}>
         <Table>
           <TableHead sx={{ backgroundColor: '#f0f0f0' }}>
             <TableRow>
@@ -42,7 +49,9 @@ const AdminFilesPage = () => {
             {files.map((file) => (
               <TableRow key={file._id}>
                 <TableCell>
-                  <a href={file.url} target="_blank" rel="noopener noreferrer">{file.filename}</a>
+                  <a href={file.url} target="_blank" rel="noopener noreferrer">
+                    {file.filename}
+                  </a>
                 </TableCell>
                 <TableCell>{file.userId?.email || 'Unknown'}</TableCell>
                 <TableCell>{new Date(file.uploadedAt).toLocaleString()}</TableCell>
