@@ -1,0 +1,92 @@
+import React from 'react';
+import {
+  Box, Container, Typography, Paper, Grid, Avatar, Link, Divider
+} from '@mui/material';
+import {
+  GitHub, Language, YouTube, Cloud, Storage, Security, MusicNote
+} from '@mui/icons-material';
+
+const techStack = [
+  { name: 'React + Vite', icon: <Language color="primary" /> },
+  { name: 'Node.js + Express', icon: <Storage color="success" /> },
+  { name: 'MongoDB + Mongoose', icon: <Storage color="success" /> },
+  { name: 'JWT Auth', icon: <Security color="warning" /> },
+  { name: 'Cloudinary', icon: <Cloud color="info" /> },
+  { name: 'YouTube MP3 Downloader', icon: <MusicNote color="error" /> },
+];
+
+const socialLinks = [
+  { name: 'GitHub', icon: <GitHub />, url: 'https://github.com/nikgitofficial' },
+  { name: 'YouTube', icon: <YouTube />, url: 'https://youtube.com/@nikkopacenio@gmail.com' },
+  { name: 'Website', icon: <Language />, url: 'https://nikkoboy123.github.io/nik' },
+];
+
+
+
+
+
+const About = () => {
+  return (
+    <Container maxWidth="md" 
+     sx={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '100%',
+        maxWidth: 400,
+        p: 4,
+        boxShadow: 3,
+        borderRadius: 2,
+        backgroundColor: 'white',
+        textAlign: 'center',
+      }}>
+      <Paper elevation={3} sx={{ p: 4, borderRadius: 4 }}>
+        <Typography variant="h4" fontWeight="bold" gutterBottom color="primary">
+          About This App
+        </Typography>
+
+        <Typography variant="body1" paragraph>
+          This app is a full-stack web application where users can:
+        </Typography>
+        <ul style={{ paddingLeft: '1.5rem' }}>
+          <li>Upload and manage files (stored in Cloudinary)</li>
+          <li>Download audio directly from YouTube videos as MP3</li>
+          <li>Use a secure login system powered by JWT tokens</li>
+        </ul>
+
+        <Divider sx={{ my: 3 }} />
+
+        <Typography variant="h5" fontWeight="medium" gutterBottom>
+          🛠 Tech Stack
+        </Typography>
+        <Grid container spacing={2}>
+          {techStack.map((tech, idx) => (
+            <Grid item xs={12} sm={6} key={idx}>
+              <Box display="flex" alignItems="center" gap={1}>
+                <Avatar sx={{ bgcolor: 'background.paper' }}>{tech.icon}</Avatar>
+                <Typography variant="body1">{tech.name}</Typography>
+              </Box>
+            </Grid>
+          ))}
+        </Grid>
+
+        <Divider sx={{ my: 3 }} />
+
+        <Typography variant="h5" fontWeight="medium" gutterBottom>
+          🌐 Connect with Me
+        </Typography>
+        <Box display="flex" gap={3} flexWrap="wrap">
+          {socialLinks.map((link, idx) => (
+            <Link key={idx} href={link.url} target="_blank" underline="hover" display="flex" alignItems="center" gap={1}>
+              {link.icon}
+              <Typography>{link.name}</Typography>
+            </Link>
+          ))}
+        </Box>
+      </Paper>
+    </Container>
+  );
+};
+
+export default About;

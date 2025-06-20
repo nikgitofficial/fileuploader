@@ -2,7 +2,6 @@ import { useState, useContext } from 'react';
 import {
   TextField,
   Button,
-  Container,
   Typography,
   Box,
   Link as MuiLink
@@ -23,17 +22,22 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     try {
       const res = await axios.post('/auth/login', form);
-      login(res.data.token); 
-      localStorage.setItem('user', JSON.stringify(res.data.user));
+
+      // Save token and user data
       login(res.data.token);
-      navigate('/');
+      localStorage.setItem('user', JSON.stringify(res.data.user));
+
+      // Redirect based on role
+      const isAdmin = res.data.user?.role === 'admin';
+      navigate(isAdmin ? '/admin' : '/');
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed');
     }
   };
-    
+
   return (
     <Box
       sx={{
@@ -57,6 +61,7 @@ const Login = () => {
         <TextField
           label="Email"
           name="email"
+          type="email"
           fullWidth
           margin="normal"
           onChange={handleChange}
@@ -69,7 +74,11 @@ const Login = () => {
           margin="normal"
           onChange={handleChange}
         />
-        {error && <Typography color="error" sx={{ mt: 1 }}>{error}</Typography>}
+        {error && (
+          <Typography color="error" sx={{ mt: 1 }}>
+            {error}
+          </Typography>
+        )}
         <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
           Login
         </Button>

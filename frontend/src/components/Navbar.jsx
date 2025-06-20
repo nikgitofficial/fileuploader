@@ -16,6 +16,9 @@ const Navbar = () => {
     navigate('/login');
   };
 
+const user = JSON.parse(localStorage.getItem('user'));
+const isAdmin = user?.role === 'admin';
+
   // Hover-only underline style
   const navButtonStyle = {
     position: 'relative',
@@ -54,10 +57,18 @@ const Navbar = () => {
         </Typography>
 
         <Box>
+          {isAdmin && (
+  <Button color="inherit" onClick={() => navigate('/admin')}>
+    Admin
+  </Button>
+)}
           {isLoggedIn ? (
             <>
             <Button color="inherit" sx={navButtonStyle} onClick={() => navigate('/')}>
                 Home
+              </Button>
+              <Button color="inherit" sx={navButtonStyle} onClick={() => navigate('/about')}>
+                About
               </Button>
 
               <Button color="inherit" sx={navButtonStyle} onClick={() => navigate('/upload')}>
@@ -74,7 +85,9 @@ const Navbar = () => {
                 Logout
               </Button>
             </>
+            
           ) : (
+            
             <>
               <Button color="inherit" sx={navButtonStyle} onClick={() => navigate('/login')}>
                 Login
