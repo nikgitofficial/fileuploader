@@ -1,5 +1,5 @@
 import express from 'express';
-import { uploadFile, getUserFiles, deleteFile } from '../controllers/fileController.js';
+import { uploadFile, getUserFiles, deleteFile, updateFileName } from '../controllers/fileController.js';
 import { verifyToken } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js'; // ✅ import clean multer setup
 
@@ -13,5 +13,7 @@ router.get('/', verifyToken, getUserFiles);
 
 // ✅ DELETE /api/files/:id
 router.delete('/:id', verifyToken, deleteFile);
+// ✅ update /api/files/:id
+router.put('/:id', verifyToken, updateFileName);
 
 export default router;
