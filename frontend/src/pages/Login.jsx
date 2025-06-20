@@ -25,16 +25,34 @@ const Login = () => {
     e.preventDefault();
     try {
       const res = await axios.post('/auth/login', form);
+      login(res.data.token); 
+      localStorage.setItem('user', JSON.stringify(res.data.user));
       login(res.data.token);
-      navigate('/upload');
+      navigate('/');
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed');
     }
   };
-
+    
   return (
-    <Container maxWidth="sm" sx={{ mt: 8 }}>
-      <Typography variant="h4" gutterBottom>Login</Typography>
+    <Box
+      sx={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '100%',
+        maxWidth: 400,
+        p: 4,
+        boxShadow: 3,
+        borderRadius: 2,
+        backgroundColor: 'white',
+        textAlign: 'center',
+      }}
+    >
+      <Typography variant="h4" gutterBottom>
+        Login
+      </Typography>
       <form onSubmit={handleSubmit}>
         <TextField
           label="Email"
@@ -51,13 +69,13 @@ const Login = () => {
           margin="normal"
           onChange={handleChange}
         />
-        {error && <Typography color="error">{error}</Typography>}
+        {error && <Typography color="error" sx={{ mt: 1 }}>{error}</Typography>}
         <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
           Login
         </Button>
       </form>
 
-      <Box sx={{ mt: 2, textAlign: 'center' }}>
+      <Box sx={{ mt: 2 }}>
         <Typography variant="body2">
           Don't have an account?{' '}
           <MuiLink component={RouterLink} to="/register">
@@ -65,7 +83,7 @@ const Login = () => {
           </MuiLink>
         </Typography>
       </Box>
-    </Container>
+    </Box>
   );
 };
 

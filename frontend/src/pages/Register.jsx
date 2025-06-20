@@ -2,7 +2,6 @@ import { useState } from 'react';
 import {
   TextField,
   Button,
-  Container,
   Typography,
   Link as MuiLink,
   Box
@@ -22,7 +21,7 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('/auth/register', form); // axios baseURL already includes /api
+      await axios.post('/auth/register', form);
       navigate('/login');
     } catch (err) {
       console.error('❌ Registration error:', err);
@@ -31,10 +30,25 @@ const Register = () => {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 8 }}>
+    <Box
+      sx={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '100%',
+        maxWidth: 400,
+        p: 4,
+        boxShadow: 3,
+        borderRadius: 2,
+        backgroundColor: 'white',
+        textAlign: 'center',
+      }}
+    >
       <Typography variant="h4" gutterBottom>
         Register
       </Typography>
+
       <form onSubmit={handleSubmit}>
         <TextField
           label="Email"
@@ -61,7 +75,7 @@ const Register = () => {
         </Button>
       </form>
 
-      <Box sx={{ mt: 2, textAlign: 'center' }}>
+      <Box sx={{ mt: 2 }}>
         <Typography variant="body2">
           Already have an account?{' '}
           <MuiLink component={RouterLink} to="/login">
@@ -69,7 +83,7 @@ const Register = () => {
           </MuiLink>
         </Typography>
       </Box>
-    </Container>
+    </Box>
   );
 };
 
