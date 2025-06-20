@@ -16,7 +16,7 @@ app.use(express.json());
 // ✅ 2. CORS configuration
 const allowedOrigins = [
   'http://localhost:5173',                    // dev frontend
-  'https://fileuploader.vercel.app'          // deployed frontend
+  'https://fileuploader-dun.vercel.app'          // deployed frontend
 ];
 
 app.use(cors({
