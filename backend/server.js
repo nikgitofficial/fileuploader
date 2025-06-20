@@ -34,7 +34,7 @@ app.use(cors({
 // ✅ 3. Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/files', fileRoutes);
-app.use('/api/youtube', youtubeRoutes);
+app.use('/api/youtube', youtubeRoutes)
 
 // ✅ 4. Connect to DB and start server
 mongoose.connect(process.env.MONGODB_URI, {

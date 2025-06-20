@@ -13,6 +13,7 @@ router.get('/', verifyToken, getUserFiles);
 
 // ✅ DELETE /api/files/:id
 router.delete('/:id', verifyToken, deleteFile);
+    
 // ✅ update /api/files/:id
 router.put('/:id', verifyToken, updateFileName);
 

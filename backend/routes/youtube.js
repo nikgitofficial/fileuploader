@@ -1,14 +1,10 @@
 // backend/routes/youtube.js
 import express from 'express';
 import ytdl from 'ytdl-core';
-import ffmpeg from 'fluent-ffmpeg';
-import ffmpegPath from 'ffmpeg-static';
-import { PassThrough } from 'stream';
 
 const router = express.Router();
-ffmpeg.setFfmpegPath(ffmpegPath);
 
-router.get('/download-mp3', async (req, res) => {
+router.get('/download-audio', async (req, res) => {
   const { url } = req.query;
 
   if (!ytdl.validateURL(url)) {
@@ -19,21 +15,16 @@ router.get('/download-mp3', async (req, res) => {
     const info = await ytdl.getInfo(url);
     const title = info.videoDetails.title.replace(/[^\w\s]/gi, '_');
 
-    res.setHeader('Content-Disposition', `attachment; filename="${title}.mp3"`);
-    res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('Content-Disposition', `attachment; filename="${title}.m4a"`);
+    res.setHeader('Content-Type', 'audio/mp4');
 
-    const stream = ytdl(url, { quality: 'highestaudio' });
-    const passthrough = new PassThrough();
-
-    ffmpeg(stream)
-      .audioBitrate(128)
-      .format('mp3')
-      .pipe(passthrough);
-
-    passthrough.pipe(res);
+    ytdl(url, {
+      quality: 'highestaudio',
+      filter: 'audioonly',
+    }).pipe(res);
   } catch (err) {
-    console.error('❌ MP3 download error:', err);
-    res.status(500).json({ error: 'Failed to download' });
+    console.error('❌ Audio-only download error:', err);
+    res.status(500).json({ error: 'Failed to download audio' });
   }
 });
 
