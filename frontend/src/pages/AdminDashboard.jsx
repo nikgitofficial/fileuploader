@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, Container, Box
+  Typography, Container, Box, Card, CardContent, Grid
 } from '@mui/material';
 import axios from '../api/axios';
 
@@ -33,56 +32,40 @@ const AdminDashboard = () => {
   }, []);
 
   return (
-    <Container>
-      <Box mt={4}>
-        <Typography variant="h4" gutterBottom>📁 All Uploaded Files</Typography>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Filename</TableCell>
-                <TableCell>User Email</TableCell>
-                <TableCell>Uploaded At</TableCell>
-                <TableCell>Download</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {files.map((file) => (
-                <TableRow key={file._id}>
-                  <TableCell>{file.filename}</TableCell>
-                  <TableCell>{file.userId?.email}</TableCell>
-                  <TableCell>{new Date(file.uploadedAt).toLocaleString()}</TableCell>
-                  <TableCell>
-                    <a href={file.url} target="_blank" rel="noopener noreferrer">Download</a>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Box>
+    <Container maxWidth="md" sx={{ mt: 6 }}>
+      <Typography variant="h4" gutterBottom textAlign="center">
+        👑 Admin Dashboard
+      </Typography>
 
-      <Box mt={5}>
-        <Typography variant="h4" gutterBottom>👤 Registered Users</Typography>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Email</TableCell>
-                <TableCell>Role</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {users.map((user) => (
-                <TableRow key={user._id}>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.role}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Box>
+      <Grid container spacing={4} mt={4}>
+        {/* 📁 Total Files Uploaded */}
+        <Grid item xs={12} sm={6}>
+          <Card sx={{ p: 2, borderLeft: '5px solid #1976d2' }}>
+            <CardContent>
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                Total Files Uploaded
+              </Typography>
+              <Typography variant="h3" color="primary">
+                {files.length}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* 👤 Total Registered Users */}
+        <Grid item xs={12} sm={6}>
+          <Card sx={{ p: 2, borderLeft: '5px solid #388e3c' }}>
+            <CardContent>
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                Total Registered Users
+              </Typography>
+              <Typography variant="h3" color="success.main">
+                {users.length}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
     </Container>
   );
 };

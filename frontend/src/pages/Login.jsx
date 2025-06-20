@@ -23,16 +23,21 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
     try {
       const res = await axios.post('/auth/login', form);
 
-      // Save token and user data
-      login(res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.user));
+      // ✅ Save token and user data
+      const { token, user } = res.data;
+      login(token);
+      localStorage.setItem('user', JSON.stringify(user));
 
-      // Redirect based on role
-      const isAdmin = res.data.user?.role === 'admin';
-      navigate(isAdmin ? '/admin' : '/');
+      // ✅ Redirect based on role
+      if (user?.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed');
     }
@@ -57,6 +62,7 @@ const Login = () => {
       <Typography variant="h4" gutterBottom>
         Login
       </Typography>
+
       <form onSubmit={handleSubmit}>
         <TextField
           label="Email"
@@ -86,7 +92,7 @@ const Login = () => {
 
       <Box sx={{ mt: 2 }}>
         <Typography variant="body2">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <MuiLink component={RouterLink} to="/register">
             Register here
           </MuiLink>
