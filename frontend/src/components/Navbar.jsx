@@ -56,15 +56,20 @@ const Navbar = () => {
         <Box>
           {isLoggedIn ? (
             <>
+            <Button color="inherit" sx={navButtonStyle} onClick={() => navigate('/')}>
+                Home
+              </Button>
+
               <Button color="inherit" sx={navButtonStyle} onClick={() => navigate('/upload')}>
                 Upload
               </Button>
                <Button color="inherit" sx={navButtonStyle} onClick={() => navigate('/youtube-downloader')}>
                 Download
               </Button>
-              <Button color="inherit" sx={navButtonStyle} onClick={() => navigate('/')}>
-                Home
+               <Button color="inherit" sx={navButtonStyle} onClick={() => navigate('/contact')}>
+                Contact
               </Button>
+              
               <Button color="inherit" sx={navButtonStyle} onClick={handleLogout}>
                 Logout
               </Button>

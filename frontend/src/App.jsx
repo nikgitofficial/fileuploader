@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Upload from './pages/Upload';
 import YouTubeDownloader from './pages/YouTubeDownloader';
+import Contact from './pages/Contact';
 function App() {
   return (
     <AuthProvider>
@@ -19,9 +20,11 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />}/>
               <Route path="/upload" element={<Upload />} />
+              <Route path="/youtube-downloader" element={<YouTubeDownloader />} />
+              <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/youtube-downloader" element={<YouTubeDownloader />} />
+             
             </Routes>
           </Box>
           <Footer />
