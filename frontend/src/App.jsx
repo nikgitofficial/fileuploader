@@ -11,6 +11,8 @@ import YouTubeDownloader from './pages/YouTubeDownloader';
 import Contact from './pages/Contact';
 import About from './pages/About';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminFilesPage from './pages/AdminFilesPage';
+import AdminUsersPage from './pages/AdminUsersPage';
 function App() {
   return (
     <AuthProvider>
@@ -25,6 +27,8 @@ function App() {
               <Route path="/upload" element={<Upload />} />
               <Route path="/youtube-downloader" element={<YouTubeDownloader />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/files" element={<AdminFilesPage />} />
+              <Route path="/admin/users" element={<AdminUsersPage />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />

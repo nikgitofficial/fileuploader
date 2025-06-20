@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import {
-  Typography, Container, Box, Card, CardContent, Grid
+  Typography, Container, Card, CardContent, Grid
 } from '@mui/material';
+import { Link } from 'react-router-dom';
 import axios from '../api/axios';
 
 const AdminDashboard = () => {
@@ -32,38 +33,77 @@ const AdminDashboard = () => {
   }, []);
 
   return (
-    <Container maxWidth="md" sx={{ mt: 6 }}>
+    <Container
+      maxWidth="md"
+      sx={{
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '100%',
+        maxWidth: 400,
+        p: 4,
+        boxShadow: 5,
+        borderRadius: 2,
+        backgroundColor: 'white',
+        textAlign: 'center',
+      }}
+    >
       <Typography variant="h4" gutterBottom textAlign="center">
-        👑 Admin Dashboard
+        Admin Dashboard
       </Typography>
 
-      <Grid container spacing={4} mt={4}>
-        {/* 📁 Total Files Uploaded */}
+      <Grid container spacing={10} mt={10}>
+        {/* 📁 Files Card */}
         <Grid item xs={12} sm={6}>
-          <Card sx={{ p: 2, borderLeft: '5px solid #1976d2' }}>
-            <CardContent>
-              <Typography variant="h6" color="text.secondary" gutterBottom>
-                Total Files Uploaded
-              </Typography>
-              <Typography variant="h3" color="primary">
-                {files.length}
-              </Typography>
-            </CardContent>
-          </Card>
+          <Link to="/admin/files" style={{ textDecoration: 'none' }}>
+            <Card
+              sx={{
+                p: 2,
+                borderLeft: '5px solid #1976d2',
+                transition: 'transform 0.3s, box-shadow 0.3s',
+                '&:hover': {
+                  transform: 'translateY(-5px)',
+                  boxShadow: 6,
+                },
+              }}
+            >
+              <CardContent>
+                <Typography variant="h6" color="text.secondary" gutterBottom>
+                  Total Files Uploaded
+                </Typography>
+                <Typography variant="h3" color="primary">
+                  {files.length}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Link>
         </Grid>
 
-        {/* 👤 Total Registered Users */}
+        {/* 👤 Users Card */}
         <Grid item xs={12} sm={6}>
-          <Card sx={{ p: 2, borderLeft: '5px solid #388e3c' }}>
-            <CardContent>
-              <Typography variant="h6" color="text.secondary" gutterBottom>
-                Total Registered Users
-              </Typography>
-              <Typography variant="h3" color="success.main">
-                {users.length}
-              </Typography>
-            </CardContent>
-          </Card>
+          <Link to="/admin/users" style={{ textDecoration: 'none' }}>
+            <Card
+              sx={{
+                p: 2,
+                borderLeft: '5px solid #228B22',
+                transition: 'transform 0.3s, box-shadow 0.3s',
+                '&:hover': {
+                  transform: 'translateY(-5px)',
+                  boxShadow: 6,
+                },
+              }}
+            >
+              <CardContent>
+                <Typography variant="h6" color="text.secondary" gutterBottom>
+                  Total Registered Users
+                </Typography>
+                <Typography variant="h3" color="success.main">
+                  {users.length}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Link>
         </Grid>
       </Grid>
     </Container>
