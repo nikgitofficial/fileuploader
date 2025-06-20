@@ -43,7 +43,9 @@ const AdminUsersPage = () => {
               <TableRow key={user._id}>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{user.role}</TableCell>
-                <TableCell>{new Date(user.createdAt).toLocaleString()}</TableCell>
+                <TableCell>
+  {user.createdAt ? new Date(user.createdAt).toLocaleString() : 'N/A'}
+</TableCell>
               </TableRow>
             ))}
           </TableBody>

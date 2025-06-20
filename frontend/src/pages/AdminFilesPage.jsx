@@ -45,7 +45,7 @@ const AdminFilesPage = () => {
                   <a href={file.url} target="_blank" rel="noopener noreferrer">{file.filename}</a>
                 </TableCell>
                 <TableCell>{file.userId?.email || 'Unknown'}</TableCell>
-                <TableCell>{new Date(file.createdAt).toLocaleString()}</TableCell>
+                <TableCell>{new Date(file.uploadedAt).toLocaleString()}</TableCell>
               </TableRow>
             ))}
           </TableBody>
