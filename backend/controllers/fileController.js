@@ -1,7 +1,6 @@
 import cloudinary from '../utils/cloudinary.js';
 import File from '../models/File.js';
 import { Readable } from 'stream';
-import mongoose from 'mongoose'; // ✅ for ObjectId validation
 
 // 📤 Upload File Controller
 export const uploadFile = async (req, res) => {
@@ -28,7 +27,7 @@ export const uploadFile = async (req, res) => {
         const file = await File.create({
           filename: req.file.originalname,
           url: result.secure_url,
-          public_id: result.public_id,
+          public_id: result.public_id, // ✅ Store for deletion
           type: req.file.mimetype,
           userId: req.userId,
         });
@@ -39,7 +38,7 @@ export const uploadFile = async (req, res) => {
 
     bufferToStream(req.file.buffer).pipe(stream);
   } catch (err) {
-    console.error('❌ Upload error:', err.message);
+    console.error('❌ Upload error:', err);
     res.status(500).json({ error: 'Upload failed' });
   }
 };
@@ -48,43 +47,31 @@ export const uploadFile = async (req, res) => {
 export const deleteFile = async (req, res) => {
   try {
     const fileId = req.params.id;
-
-    // ✅ Validate ObjectId
-    if (!mongoose.Types.ObjectId.isValid(fileId)) {
-      return res.status(400).json({ error: 'Invalid file ID' });
-    }
-
     const file = await File.findById(fileId);
+
     if (!file) {
       return res.status(404).json({ error: 'File not found' });
     }
 
-    // ✅ Authorization check
-    if (file.userId?.toString() !== req.userId?.toString()) {
+    if (file.userId.toString() !== req.userId) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    // ✅ Delete from Cloudinary
+    // ✅ Safely delete from Cloudinary if public_id exists
     if (file.public_id) {
-      try {
-        await cloudinary.uploader.destroy(file.public_id, {
-          resource_type: 'auto',
-        });
-      } catch (cloudErr) {
-        console.warn('⚠️ Cloudinary delete failed:', cloudErr.message);
-      }
+      await cloudinary.uploader.destroy(file.public_id, {
+        resource_type: 'auto',
+      });
     } else {
-      console.warn(`⚠️ No public_id for file "${file.filename}", skipping Cloudinary deletion.`);
+      console.warn(`⚠️ File ${file.filename} has no public_id. Skipping Cloudinary delete.`);
     }
 
-    // ✅ Delete from MongoDB
+    // Delete from MongoDB
     await File.findByIdAndDelete(fileId);
 
-    console.log(`✅ Deleted file: ${file.filename} (${fileId})`);
     res.status(200).json({ message: 'File deleted successfully' });
   } catch (err) {
-    console.error('❌ Delete error:', err.message);
-    console.error(err.stack);
+    console.error('❌ Delete error:', err);
     res.status(500).json({ error: 'Failed to delete file' });
   }
 };
@@ -95,7 +82,7 @@ export const getUserFiles = async (req, res) => {
     const files = await File.find({ userId: req.userId }).sort({ createdAt: -1 });
     res.status(200).json(files);
   } catch (err) {
-    console.error('❌ Get files error:', err.message);
+    console.error('❌ Get files error:', err);
     res.status(500).json({ error: 'Failed to retrieve files' });
   }
 };

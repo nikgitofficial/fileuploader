@@ -58,7 +58,17 @@ export const login = async (req, res) => {
       { expiresIn: '7d' } // optional expiration
     );
 
-    res.status(200).json({ token });
+  res.status(200).json({
+  token,
+  user: {
+    id: user._id,
+    email: user.email  // ✅ include email only
+  }
+});
+
+
+
+    
 
   } catch (err) {
     console.error('❌ Login error:', err);
