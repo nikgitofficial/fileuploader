@@ -1,92 +1,81 @@
 // src/pages/Contact.jsx
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  Box, Grid, TextField, Typography, Button, Paper, Snackbar, Alert
+  Box, Typography, Paper, Link, Grid, Avatar
 } from '@mui/material';
+import { Email, Facebook, Phone, Language } from '@mui/icons-material';
 
 const Contact = () => {
-  const [form, setForm] = useState({ name: '', email: '', message: '' });
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // TODO: Send to backend or email service
-    setSnackbar({ open: true, message: 'Message sent successfully!', severity: 'success' });
-    setForm({ name: '', email: '', message: '' });
-  };
-
   return (
-    <Box sx={{ mt: 10, px: 2 }}>
+    <Box sx={
+      { mt: 10, 
+        px: 2,
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '200%',
+        maxWidth: 600,
+        p: 4,
+        boxShadow: 3,
+        borderRadius: 2,
+        backgroundColor: 'white',
+        textAlign: 'center',
+
+     }}>
       <Paper elevation={4} sx={{ p: 4, maxWidth: 600, mx: 'auto', borderRadius: 4 }}>
-        <Typography variant="h5" gutterBottom align="center">
-          Get in Touch
-        </Typography>
-        <Typography variant="body1" color="text.secondary" align="center" sx={{ mb: 3 }}>
-          We'd love to hear from you. Please fill out the form below.
+        <Typography variant="h5" gutterBottom align="center" color="primary">
+          📞 Contact Information
         </Typography>
 
-        <form onSubmit={handleSubmit}>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                label="Full Name"
-                name="name"
-                fullWidth
-                value={form.name}
-                onChange={handleChange}
-                required
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Email Address"
-                name="email"
-                fullWidth
-                value={form.email}
-                onChange={handleChange}
-                required
-                type="email"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Your Message"
-                name="message"
-                fullWidth
-                multiline
-                minRows={4}
-                value={form.message}
-                onChange={handleChange}
-                required
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Button type="submit" fullWidth variant="contained" size="large">
-                Send Message
-              </Button>
-            </Grid>
+        <Typography variant="body1" align="center" color="text.secondary" sx={{ mb: 3 }}>
+          Feel free to reach out to me through any of the platforms below.
+        </Typography>
+
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <Box display="flex" alignItems="center" gap={2}>
+              <Avatar sx={{ bgcolor: '#3b5998' }}>
+                <Facebook />
+              </Avatar>
+              <Link href="https://www.facebook.com/Nikko Mirafuentes Paceno" target="_blank" underline="hover">
+                facebook.com/Nikko Mirafuentes Paceno
+              </Link>
+            </Box>
           </Grid>
-        </form>
-      </Paper>
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          severity={snackbar.severity}
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+        <Grid item xs={12}>
+  <Box display="flex" alignItems="center" gap={2}>
+    <Avatar
+      src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Gmail_Icon.png"
+      alt="Gmail"
+      sx={{ bgcolor: 'white', width: 40, height: 40 }}
+    />
+    <Typography variant="body1">nickforjobacc@gmail.com</Typography>
+  </Box>
+</Grid>
+
+          <Grid item xs={12}>
+            <Box display="flex" alignItems="center" gap={2}>
+              <Avatar sx={{ bgcolor: 'success.main' }}>
+                <Phone />
+              </Avatar>
+              <Typography variant="body1">+63 951 419 0949</Typography>
+            </Box>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Box display="flex" alignItems="center" gap={2}>
+              <Avatar sx={{ bgcolor: 'info.main' }}>
+                <Language />
+              </Avatar>
+              <Link href="https://nikkoboy123.github.io/nik" target="_blank" underline="hover">
+                nikkoboy123.github.io/nik
+              </Link>
+            </Box>
+          </Grid>
+        </Grid>
+      </Paper>
     </Box>
   );
 };
