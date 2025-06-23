@@ -25,21 +25,7 @@ const YouTubeDownloader = () => {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 10, p: 3, boxShadow: 3,
-
-       position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: '100%',
-        maxWidth: 400,
-        p: 4,
-        boxShadow: 3,
-        borderRadius: 2,
-        backgroundColor: 'white',
-        textAlign: 'center',
-
-     }}>
+    <Container maxWidth="sm" sx={{ mt: 10, p: 3, boxShadow: 3, borderRadius: 2 }}>
       <Typography variant="h5" gutterBottom>YouTube to Music (.m4a)</Typography>
       <TextField
         fullWidth
