@@ -46,7 +46,6 @@ const AdminUsersPage = () => {
         alignItems: 'center',
         justifyContent: 'center',
         px: 5,
-        backgroundColor: '#f8f9fa',
         position: 'absolute',
         top: '50%',
         left: '50%',
@@ -65,7 +64,7 @@ const AdminUsersPage = () => {
         sx={{
           py: 4,
           px: isMobile ? 2 : 4,
-          backgroundColor: 'white',
+         
           borderRadius: 3,
           boxShadow: 4,
         }}

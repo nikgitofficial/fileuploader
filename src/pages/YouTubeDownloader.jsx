@@ -33,8 +33,6 @@ const YouTubeDownloader = () => {
         transform: 'translate(-50%, -50%)',
         width: '100%',
         maxWidth: 400,
-        p: 4,
-        boxShadow: 3,
         borderRadius: 2,
         backgroundColor: 'white',
         textAlign: 'center',
