@@ -21,15 +21,17 @@ const socialLinks = [
   { name: 'Website', icon: <Language />, url: 'https://nikkoboy123.github.io/nik' },
 ];
 
-
-
-
-
 const About = () => {
   return (
-    <Container maxWidth="md" 
-     sx={{
-        position: 'absolute',
+    <Container
+      maxWidth="sm"
+      sx={{
+        py: { xs: 4, md: 8 },
+        px: { xs: 2, md: 4 },
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+         position: 'absolute',
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
@@ -40,8 +42,17 @@ const About = () => {
         borderRadius: 2,
         backgroundColor: 'white',
         textAlign: 'center',
-      }}>
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 4 }}>
+      }}
+    >
+      <Paper
+        elevation={3}
+        sx={{
+          p: { xs: 3, sm: 4 },
+          borderRadius: 4,
+          width: '100%',
+          textAlign: 'center',
+        }}
+      >
         <Typography variant="h4" fontWeight="bold" gutterBottom color="primary">
           About This App
         </Typography>
@@ -49,11 +60,12 @@ const About = () => {
         <Typography variant="body1" paragraph>
           This app is a full-stack web application where users can:
         </Typography>
-        <ul style={{ paddingLeft: '1.5rem' }}>
+
+        <Box component="ul" sx={{ textAlign: 'left', pl: 3, mb: 3 }}>
           <li>Upload and manage files (stored in Cloudinary)</li>
-          <li>Download audio directly from YouTube videos as MP3</li>
-          <li>Use a secure login system powered by JWT tokens</li>
-        </ul>
+          <li>Download audio from YouTube as MP3</li>
+          <li>Use a secure login system powered by JWT</li>
+        </Box>
 
         <Divider sx={{ my: 3 }} />
 
@@ -63,7 +75,7 @@ const About = () => {
         <Grid container spacing={2}>
           {techStack.map((tech, idx) => (
             <Grid item xs={12} sm={6} key={idx}>
-              <Box display="flex" alignItems="center" gap={1}>
+              <Box display="flex" alignItems="center" gap={2}>
                 <Avatar sx={{ bgcolor: 'background.paper' }}>{tech.icon}</Avatar>
                 <Typography variant="body1">{tech.name}</Typography>
               </Box>
@@ -76,9 +88,26 @@ const About = () => {
         <Typography variant="h5" fontWeight="medium" gutterBottom>
           🌐 Connect with Me
         </Typography>
-        <Box display="flex" gap={3} flexWrap="wrap">
+        <Box
+          display="flex"
+          justifyContent="center"
+          flexWrap="wrap"
+          gap={2}
+          mt={2}
+        >
           {socialLinks.map((link, idx) => (
-            <Link key={idx} href={link.url} target="_blank" underline="hover" display="flex" alignItems="center" gap={1}>
+            <Link
+              key={idx}
+              href={link.url}
+              target="_blank"
+              underline="hover"
+              display="flex"
+              alignItems="center"
+              gap={1}
+              sx={{
+                fontSize: { xs: '0.9rem', sm: '1rem' },
+              }}
+            >
               {link.icon}
               <Typography>{link.name}</Typography>
             </Link>
