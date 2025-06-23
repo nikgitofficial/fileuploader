@@ -1,25 +1,72 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  AppBar, Toolbar, Typography, Button, Box
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Box,
+  IconButton,
+  Menu,
+  MenuItem,
+  useMediaQuery
 } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
   const { token, logout } = useAuth();
   const navigate = useNavigate();
-
   const isLoggedIn = !!token;
+
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+
+  const [localUser, setLocalUser] = useState(() =>
+    JSON.parse(localStorage.getItem('user'))
+  );
+  const isAdmin = localUser?.role === 'admin';
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem('user'));
+    setLocalUser(storedUser);
+  }, [token]);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-const user = JSON.parse(localStorage.getItem('user'));
-const isAdmin = user?.role === 'admin';
+  const handleMenuClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
 
-  // Hover-only underline style
+  const handleMenuClose = (route) => {
+    setAnchorEl(null);
+    if (route) navigate(route);
+  };
+
+  const navLinks = [
+    ...(isAdmin ? [{ label: 'Admin', route: '/admin' }] : []),
+    ...(isLoggedIn
+      ? [
+          { label: 'Home', route: '/' },
+          { label: 'About', route: '/about' },
+          { label: 'Upload', route: '/upload' },
+          { label: 'Download', route: '/youtube-downloader' },
+          { label: 'Contact', route: '/contact' },
+          { label: 'Logout', action: handleLogout }
+        ]
+      : [
+          { label: 'Login', route: '/login' },
+          { label: 'Register', route: '/register' }
+        ])
+  ];
+
   const navButtonStyle = {
     position: 'relative',
     mx: 1,
@@ -37,11 +84,15 @@ const isAdmin = user?.role === 'admin';
     '&:hover::after': {
       width: '100%',
     },
-    '&:focus::after': {
-      width: '0%', // prevent outline on focus from showing underline
-    },
-    '&:active::after': {
-      width: '0%', // prevent underline staying on click
+  };
+
+  const menuItemHoverStyle = {
+    transition: 'all 0.2s ease-in-out',
+    cursor: 'pointer',
+    '&:hover': {
+      backgroundColor: '#1976d2',
+      color: '#fff',
+      transform: 'translateX(4px)',
     },
   };
 
@@ -56,48 +107,70 @@ const isAdmin = user?.role === 'admin';
           📁 NikFileUploader
         </Typography>
 
-        <Box>
-          {isAdmin && (
-  <Button color="inherit" onClick={() => navigate('/admin')}>
-    Admin
-  </Button>
-)}
-          {isLoggedIn ? (
-            <>
-            <Button color="inherit" sx={navButtonStyle} onClick={() => navigate('/')}>
-                Home
-              </Button>
-              <Button color="inherit" sx={navButtonStyle} onClick={() => navigate('/about')}>
-                About
-              </Button>
-
-              <Button color="inherit" sx={navButtonStyle} onClick={() => navigate('/upload')}>
-                Upload
-              </Button>
-               <Button color="inherit" sx={navButtonStyle} onClick={() => navigate('/youtube-downloader')}>
-                Download
-              </Button>
-               <Button color="inherit" sx={navButtonStyle} onClick={() => navigate('/contact')}>
-                Contact
-              </Button>
-              
-              <Button color="inherit" sx={navButtonStyle} onClick={handleLogout}>
-                Logout
-              </Button>
-            </>
-            
-          ) : (
-            
-            <>
-              <Button color="inherit" sx={navButtonStyle} onClick={() => navigate('/login')}>
-                Login
-              </Button>
-              <Button color="inherit" sx={navButtonStyle} onClick={() => navigate('/register')}>
-                Register
-              </Button>
-            </>
-          )}
-        </Box>
+        {isMobile ? (
+          <>
+            <IconButton
+              color="inherit"
+              edge="end"
+              onClick={handleMenuClick}
+              aria-controls="menu-appbar"
+              aria-haspopup="true"
+            >
+              <MenuIcon />
+            </IconButton>
+            <Menu
+              id="menu-appbar"
+              anchorEl={anchorEl}
+              open={open}
+              onClose={() => handleMenuClose()}
+              anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+            >
+              {navLinks.map((item, idx) =>
+                item.action ? (
+                  <MenuItem
+                    key={idx}
+                    onClick={() => {
+                      handleMenuClose();
+                      item.action();
+                    }}
+                    sx={menuItemHoverStyle}
+                  >
+                    {item.label}
+                  </MenuItem>
+                ) : (
+                  <MenuItem
+                    key={idx}
+                    onClick={() => handleMenuClose(item.route)}
+                    sx={menuItemHoverStyle}
+                  >
+                    {item.label}
+                  </MenuItem>
+                )
+              )}
+            </Menu>
+          </>
+        ) : (
+          <Box>
+            {navLinks.map((item, idx) =>
+              item.action ? (
+                <Button key={idx} color="inherit" sx={navButtonStyle} onClick={item.action}>
+                  {item.label}
+                </Button>
+              ) : (
+                <Button key={idx} color="inherit" sx={navButtonStyle} onClick={() => navigate(item.route)}>
+                  {item.label}
+                </Button>
+              )
+            )}
+          </Box>
+        )}
       </Toolbar>
     </AppBar>
   );
