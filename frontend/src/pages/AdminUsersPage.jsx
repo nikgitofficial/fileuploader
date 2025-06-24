@@ -10,17 +10,19 @@ import {
   Paper,
   TableContainer,
   useMediaQuery,
+  Button,    
   Box
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import axios from '../api/axios';
-
+import { Link, useNavigate } from 'react-router-dom';
 const AdminUsersPage = () => {
   const [users, setUsers] = useState([]);
   const token = localStorage.getItem('token');
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -75,8 +77,18 @@ const AdminUsersPage = () => {
           textAlign="center"
         >
           👤 Registered Users
+          
+        
         </Typography>
-
+        
+          <Button
+          variant="contained"
+          color="primary"
+          onClick={() => navigate('/admin')}
+          sx={{ mb: 3 }}
+        >
+          Go to Admin Dashboard
+        </Button>
         <TableContainer
           component={Paper}
           sx={{

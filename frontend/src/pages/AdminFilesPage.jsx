@@ -25,7 +25,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import axios from '../api/axios';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const AdminFilesPage = () => {
   const [files, setFiles] = useState([]);
@@ -41,6 +41,7 @@ const AdminFilesPage = () => {
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchFiles();
@@ -116,7 +117,6 @@ const AdminFilesPage = () => {
         alignItems: 'start',
         px: 2,
         py: 6,
-     
         position: 'absolute',
         top: '55%',
         left: '50%',
@@ -130,18 +130,20 @@ const AdminFilesPage = () => {
         textAlign: 'center',
       }}
     >
-      <Container
-        sx={{
-          p: isMobile ? 2 : 4,
-          
-          
-         
-         
-        }}
-      >
+      <Container sx={{ p: isMobile ? 2 : 4 }}>
         <Typography variant={isMobile ? 'h6' : 'h5'} gutterBottom>
           📁 All Uploaded Files
         </Typography>
+
+        {/* Added button to navigate back to Admin Dashboard */}
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => navigate('/admin')}
+          sx={{ mb: 3 }}
+        >
+          Go to Admin Dashboard
+        </Button>
 
         <TextField
           label="Filter by filename or email"
@@ -159,7 +161,7 @@ const AdminFilesPage = () => {
             sx={{
               maxHeight: '60vh',
               overflowY: 'auto',
-              minWidth: isMobile ? 600 : 'auto', // Prevents column cramping
+              minWidth: isMobile ? 600 : 'auto',
             }}
           >
             <Table stickyHeader size={isMobile ? 'small' : 'medium'}>
