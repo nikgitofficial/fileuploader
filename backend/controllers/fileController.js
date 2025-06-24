@@ -2,13 +2,7 @@ import cloudinary from '../utils/cloudinary.js';
 import File from '../models/File.js';
 import { Readable } from 'stream';
 import mongoose from 'mongoose';
-export {
-  uploadFile,
-  getUserFiles,
-  deleteFile,
-  updateFileName,
-  getFileById, // 👈 Add this
-};
+
 // 📤 Upload File Controller
 export const uploadFile = async (req, res) => {
   try {
@@ -23,11 +17,10 @@ export const uploadFile = async (req, res) => {
       return readable;
     };
 
-    // ✅ Upload using Cloudinary as RAW type
     const stream = cloudinary.uploader.upload_stream(
       {
-        resource_type: 'raw', // ✅ force raw for PDF/doc/etc
-        folder: 'uploads',    // optional folder organization
+        resource_type: 'raw',
+        folder: 'uploads',
       },
       async (error, result) => {
         if (error) {
@@ -72,11 +65,10 @@ export const deleteFile = async (req, res) => {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    // ✅ Delete from Cloudinary
     if (file.public_id) {
       try {
         await cloudinary.uploader.destroy(file.public_id, {
-          resource_type: 'raw', // ✅ match what was used on upload
+          resource_type: 'raw',
         });
       } catch (cloudErr) {
         console.warn('⚠️ Cloudinary delete failed:', cloudErr.message);
@@ -130,7 +122,6 @@ export const getFileById = async (req, res) => {
       return res.status(404).json({ error: 'File not found' });
     }
 
-    // Optional: check if the file belongs to the current user
     if (file.userId.toString() !== req.userId) {
       return res.status(403).json({ error: 'Unauthorized access' });
     }
