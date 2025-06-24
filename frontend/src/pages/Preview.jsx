@@ -1,14 +1,24 @@
-// src/pages/Preview.jsx
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import axios from '../api/axios';
-import { Box, Typography, CircularProgress } from '@mui/material';
+import {
+  Box,
+  Typography,
+  CircularProgress,
+  Button,
+  useTheme,
+  useMediaQuery,
+} from '@mui/material';
 
 const Preview = () => {
   const { id } = useParams();
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [previewError, setPreviewError] = useState(false);
   const token = localStorage.getItem('token');
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     const fetchFile = async () => {
@@ -19,7 +29,7 @@ const Preview = () => {
         });
         setFile(res.data);
       } catch (err) {
-        console.error('Error fetching file:', err);
+        console.error('❌ Error fetching file:', err);
       } finally {
         setLoading(false);
       }
@@ -27,49 +37,149 @@ const Preview = () => {
     fetchFile();
   }, [id]);
 
-  if (loading) return <CircularProgress />;
-  if (!file) return <Typography>File not found</Typography>;
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 9999,
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
-  const isImage = file.type.startsWith('image/');
+  if (!file) {
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          px: 2,
+        }}
+      >
+        <Typography>❌ File not found</Typography>
+      </Box>
+    );
+  }
+
+  const isImage = file.type?.startsWith('image/');
   const isPDF = file.type === 'application/pdf';
-  const isText = file.type.startsWith('text/');
+  const isText = file.type?.startsWith('text/');
   const isDocOrSheet = [
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   ].includes(file.type);
 
-  return (
-    <Box sx={{ p: 4 }}>
-      <Typography variant="h5" gutterBottom>{file.filename}</Typography>
+  const fallbackLink = (
+    <Typography mt={2}>
+      ⚠️ No preview available.{' '}
+      <a href={file.url} target="_blank" rel="noopener noreferrer">
+        Open or Download
+      </a>
+    </Typography>
+  );
 
-      {isImage ? (
-        <img src={file.url} alt={file.filename} style={{ maxWidth: '100%' }} />
-      ) : isPDF ? (
-        <iframe
-          src={`${file.url}#toolbar=0`}
-          title="PDF Preview"
-          style={{ width: '100%', height: '80vh', border: 'none' }}
-        />
-      ) : isText ? (
-        <iframe
-          src={file.url}
-          title="Text File Preview"
-          style={{ width: '100%', height: '80vh', border: '1px solid #ccc' }}
-        />
-      ) : isDocOrSheet ? (
-        <iframe
-          src={`https://docs.google.com/viewer?url=${encodeURIComponent(file.url)}&embedded=true`}
-          title="Office Preview"
-          style={{ width: '100%', height: '80vh', border: 'none' }}
-        />
-      ) : (
-        <Typography>
-          No preview available.{' '}
-          <a href={file.url} target="_blank" rel="noopener noreferrer">
-            Open or Download
-          </a>
+  return (
+    <Box
+      sx={{
+        position: 'absolute',
+        top: isMobile ? 0 : '50%',
+        left: '50%',
+        transform: isMobile ? 'translateX(-50%)' : 'translate(-50%, -50%)',
+        width: '100%',
+        px: isMobile ? 1 : 4,
+        py: isMobile ? 2 : 6,
+        maxHeight: '100vh',
+        overflowY: 'auto',
+      }}
+    >
+      <Box
+        sx={{
+          width: '100%',
+          maxWidth: 1000,
+          margin: '0 auto',
+          p: isMobile ? 2 : 4,
+          borderRadius: 2,
+          boxShadow: 3,
+          backgroundColor: 'white',
+          textAlign: 'center',
+        }}
+      >
+        <Typography variant={isMobile ? 'h6' : 'h5'} gutterBottom>
+          {file.filename}
         </Typography>
-      )}
+
+        {previewError && fallbackLink}
+
+        {!previewError && (
+          <>
+            {isImage ? (
+              <Box>
+                <img
+                  src={file.url}
+                  alt={file.filename}
+                  style={{
+                    width: '100%',
+                    maxHeight: isMobile ? '50vh' : '70vh',
+                    objectFit: 'contain',
+                    marginBottom: '16px',
+                  }}
+                  onError={() => setPreviewError(true)}
+                />
+                <Button
+                  variant="outlined"
+                  href={`${file.url}?fl_attachment=true`}
+                  download={file.filename}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  fullWidth={isMobile}
+                >
+                  ⬇️ Download Image
+                </Button>
+              </Box>
+            ) : isPDF || isText || isDocOrSheet ? (
+              <iframe
+                src={
+                  isPDF || isDocOrSheet
+                    ? `https://docs.google.com/gview?url=${encodeURIComponent(file.url)}&embedded=true`
+                    : file.url
+                }
+                title="File Preview"
+                style={{
+                  width: '100%',
+                  height: isMobile ? '60vh' : '80vh',
+                  border: '1px solid #ccc',
+                  marginBottom: '16px',
+                }}
+                onError={() => setPreviewError(true)}
+              />
+            ) : (
+              fallbackLink
+            )}
+          </>
+        )}
+
+        {!isImage && (
+          <Button
+            variant="outlined"
+            sx={{ mt: 2 }}
+            href={`${file.url}?fl_attachment=true`}
+            download={file.filename}
+            target="_blank"
+            rel="noopener noreferrer"
+            fullWidth={isMobile}
+          >
+            ⬇️ Download File
+          </Button>
+        )}
+      </Box>
     </Box>
   );
 };

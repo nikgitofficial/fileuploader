@@ -4,7 +4,9 @@ import {
   Button,
   Typography,
   Link as MuiLink,
-  Box
+  Box,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import axios from '../api/axios';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
@@ -13,6 +15,9 @@ const Register = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -38,14 +43,15 @@ const Register = () => {
         transform: 'translate(-50%, -50%)',
         width: '100%',
         maxWidth: 400,
-        p: 4,
+        px: isMobile ? 2 : 4,
+        py: isMobile ? 3 : 4,
         boxShadow: 3,
         borderRadius: 2,
         backgroundColor: 'white',
         textAlign: 'center',
       }}
     >
-      <Typography variant="h4" gutterBottom>
+      <Typography variant={isMobile ? 'h5' : 'h4'} gutterBottom>
         Register
       </Typography>
 

@@ -4,7 +4,9 @@ import {
   Button,
   Typography,
   Box,
-  Link as MuiLink
+  Link as MuiLink,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import axios from '../api/axios';
 import { AuthContext } from '../context/AuthContext';
@@ -14,7 +16,11 @@ const Login = () => {
   const { login } = useContext(AuthContext);
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -23,16 +29,14 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     try {
       const res = await axios.post('/auth/login', form);
-
-      // ✅ Save token and user data
       const { token, user } = res.data;
       login(token);
       localStorage.setItem('user', JSON.stringify(user));
 
-      // ✅ Redirect based on role
       if (user?.role === 'admin') {
         navigate('/admin');
       } else {
@@ -40,6 +44,7 @@ const Login = () => {
       }
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed');
+      setLoading(false); // Reset loading on error
     }
   };
 
@@ -52,14 +57,15 @@ const Login = () => {
         transform: 'translate(-50%, -50%)',
         width: '100%',
         maxWidth: 400,
-        p: 4,
+        px: isMobile ? 2 : 4,
+        py: isMobile ? 3 : 4,
         boxShadow: 3,
         borderRadius: 2,
         backgroundColor: 'white',
         textAlign: 'center',
       }}
     >
-      <Typography variant="h4" gutterBottom>
+      <Typography variant={isMobile ? 'h5' : 'h4'} gutterBottom>
         Login
       </Typography>
 
@@ -85,8 +91,14 @@ const Login = () => {
             {error}
           </Typography>
         )}
-        <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
-          Login
+        <Button
+          type="submit"
+          variant="contained"
+          fullWidth
+          sx={{ mt: 2 }}
+          disabled={loading}
+        >
+          {loading ? 'Logging in...' : 'Login'}
         </Button>
       </form>
 

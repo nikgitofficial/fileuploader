@@ -12,12 +12,13 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useTheme } from '@mui/material/styles';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
   const { token, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const isLoggedIn = !!token;
 
   const [anchorEl, setAnchorEl] = useState(null);
@@ -67,24 +68,28 @@ const Navbar = () => {
         ])
   ];
 
-  const navButtonStyle = {
+  const navButtonStyle = (isActive) => ({
     position: 'relative',
     mx: 1,
+    color: isActive ? '#fff' : 'inherit',
+    backgroundColor: isActive ? '#1565c0' : 'transparent',
+    borderRadius: 1,
     textTransform: 'none',
+    fontWeight: isActive ? 'bold' : 'normal',
     '&::after': {
       content: '""',
       position: 'absolute',
       bottom: 0,
       left: 0,
       height: '2px',
-      width: '0%',
-      backgroundColor: 'white',
+      width: isActive ? '100%' : '0%',
+      backgroundColor: '#64b5f6',
       transition: 'width 0.3s ease-in-out',
     },
     '&:hover::after': {
       width: '100%',
     },
-  };
+  });
 
   const menuItemHoverStyle = {
     transition: 'all 0.2s ease-in-out',
@@ -160,11 +165,21 @@ const Navbar = () => {
           <Box>
             {navLinks.map((item, idx) =>
               item.action ? (
-                <Button key={idx} color="inherit" sx={navButtonStyle} onClick={item.action}>
+                <Button
+                  key={idx}
+                  color="inherit"
+                  sx={navButtonStyle(false)}
+                  onClick={item.action}
+                >
                   {item.label}
                 </Button>
               ) : (
-                <Button key={idx} color="inherit" sx={navButtonStyle} onClick={() => navigate(item.route)}>
+                <Button
+                  key={idx}
+                  color="inherit"
+                  sx={navButtonStyle(location.pathname === item.route)}
+                  onClick={() => navigate(item.route)}
+                >
                   {item.label}
                 </Button>
               )

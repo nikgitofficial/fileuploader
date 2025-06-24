@@ -1,4 +1,3 @@
-// src/pages/Contact.jsx
 import React from 'react';
 import {
   Box, Typography, Paper, Link, Grid, Avatar
@@ -15,7 +14,7 @@ const Contact = () => {
     <Box
       sx={{
         mt: isMobile ? 4 : 10,
-       
+        px: isMobile ? 2 : 0,
         width: '100%',
         display: 'flex',
         justifyContent: 'center',
@@ -26,20 +25,16 @@ const Contact = () => {
         sx={{
           p: isMobile ? 2 : 4,
           maxWidth: 600,
+          width: '100%',
           position: 'absolute',
-          top: '50%',
+          top: isMobile ? '50%' : '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          width: '100%',
-          
           boxShadow: 3,
           borderRadius: 2,
           backgroundColor: 'white',
           textAlign: 'center',
         }}
-        
-        
-   
       >
         <Typography variant="h5" gutterBottom align="center" color="primary">
           📞 Contact Information
@@ -51,22 +46,37 @@ const Contact = () => {
 
         <Grid container spacing={2}>
           <Grid item xs={12}>
-            <Box display="flex" flexDirection={isMobile ? 'column' : 'row'} alignItems="center" gap={2}>
+            <Box
+              display="flex"
+              flexDirection={isMobile ? 'column' : 'row'}
+              alignItems="center"
+              justifyContent="center"
+              textAlign={isMobile ? 'center' : 'left'}
+              gap={2}
+            >
               <Avatar sx={{ bgcolor: '#3b5998' }}>
                 <Facebook />
               </Avatar>
               <Link
-  href="https://www.facebook.com/Nikko%20Mirafuentes%20Paceno"
-  target="_blank"
-  underline="hover"
->
-  facebook.com/Nikko Mirafuentes Paceno
-</Link>
+                href="https://www.facebook.com/Nikko%20Mirafuentes%20Paceno"
+                target="_blank"
+                underline="hover"
+                sx={{ wordBreak: 'break-word' }}
+              >
+                facebook.com/Nikko Mirafuentes Paceno
+              </Link>
             </Box>
           </Grid>
 
           <Grid item xs={12}>
-            <Box display="flex" flexDirection={isMobile ? 'column' : 'row'} alignItems="center" gap={2}>
+            <Box
+              display="flex"
+              flexDirection={isMobile ? 'column' : 'row'}
+              alignItems="center"
+              justifyContent="center"
+              textAlign={isMobile ? 'center' : 'left'}
+              gap={2}
+            >
               <Avatar
                 src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Gmail_Icon.png"
                 alt="Gmail"
@@ -77,7 +87,14 @@ const Contact = () => {
           </Grid>
 
           <Grid item xs={12}>
-            <Box display="flex" flexDirection={isMobile ? 'column' : 'row'} alignItems="center" gap={2}>
+            <Box
+              display="flex"
+              flexDirection={isMobile ? 'column' : 'row'}
+              alignItems="center"
+              justifyContent="center"
+              textAlign={isMobile ? 'center' : 'left'}
+              gap={2}
+            >
               <Avatar sx={{ bgcolor: 'success.main' }}>
                 <Phone />
               </Avatar>
@@ -86,11 +103,22 @@ const Contact = () => {
           </Grid>
 
           <Grid item xs={12}>
-            <Box display="flex" flexDirection={isMobile ? 'column' : 'row'} alignItems="center" gap={2}>
+            <Box
+              display="flex"
+              flexDirection={isMobile ? 'column' : 'row'}
+              alignItems="center"
+              justifyContent="center"
+              textAlign={isMobile ? 'center' : 'left'}
+              gap={2}
+            >
               <Avatar sx={{ bgcolor: 'info.main' }}>
                 <Language />
               </Avatar>
-              <Link href="https://nikkoboy123.github.io/nik" target="_blank" underline="hover">
+              <Link
+                href="https://nikkoboy123.github.io/nik"
+                target="_blank"
+                underline="hover"
+              >
                 nikkoboy123.github.io/nik
               </Link>
             </Box>

@@ -1,7 +1,8 @@
 import React from 'react';
 import {
-  Box, Container, Typography, Paper, Grid, Avatar, Link, Divider
+  Box, Container, Typography, Paper, Grid, Avatar, Link, Divider, useMediaQuery
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import {
   GitHub, Language, YouTube, Cloud, Storage, Security, MusicNote
 } from '@mui/icons-material';
@@ -22,22 +23,22 @@ const socialLinks = [
 ];
 
 const About = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   return (
     <Container
       maxWidth="sm"
       sx={{
         py: { xs: 4, md: 8 },
         px: { xs: 2, md: 4 },
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-         position: 'absolute',
+        position: 'absolute',
         top: '55%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
         width: '100%',
-        maxWidth: 400,
-        p: 4,
+        maxWidth: isMobile ? '90%' : 400,
+        p: isMobile ? 2 : 4,
         boxShadow: 3,
         borderRadius: 2,
         backgroundColor: 'white',
@@ -47,13 +48,18 @@ const About = () => {
       <Paper
         elevation={3}
         sx={{
-          p: { xs: 3, sm: 4 },
+          p: isMobile ? 2 : 4,
           borderRadius: 4,
           width: '100%',
           textAlign: 'center',
         }}
       >
-        <Typography variant="h4" fontWeight="bold" gutterBottom color="primary">
+        <Typography
+          variant={isMobile ? 'h5' : 'h4'}
+          fontWeight="bold"
+          gutterBottom
+          color="primary"
+        >
           About This App
         </Typography>
 
@@ -69,7 +75,7 @@ const About = () => {
 
         <Divider sx={{ my: 3 }} />
 
-        <Typography variant="h5" fontWeight="medium" gutterBottom>
+        <Typography variant={isMobile ? 'h6' : 'h5'} fontWeight="medium" gutterBottom>
           🛠 Tech Stack
         </Typography>
         <Grid container spacing={2}>
@@ -77,7 +83,7 @@ const About = () => {
             <Grid item xs={12} sm={6} key={idx}>
               <Box display="flex" alignItems="center" gap={2}>
                 <Avatar sx={{ bgcolor: 'background.paper' }}>{tech.icon}</Avatar>
-                <Typography variant="body1">{tech.name}</Typography>
+                <Typography variant="body2">{tech.name}</Typography>
               </Box>
             </Grid>
           ))}
@@ -85,7 +91,7 @@ const About = () => {
 
         <Divider sx={{ my: 3 }} />
 
-        <Typography variant="h5" fontWeight="medium" gutterBottom>
+        <Typography variant={isMobile ? 'h6' : 'h5'} fontWeight="medium" gutterBottom>
           🌐 Connect with Me
         </Typography>
         <Box
@@ -109,7 +115,7 @@ const About = () => {
               }}
             >
               {link.icon}
-              <Typography>{link.name}</Typography>
+              <Typography variant="body2">{link.name}</Typography>
             </Link>
           ))}
         </Box>

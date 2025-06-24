@@ -55,7 +55,9 @@ const Upload = () => {
     }
   };
 
-  useEffect(() => { fetchFiles(); }, []);
+  useEffect(() => {
+    fetchFiles();
+  }, []);
 
   const handleUpload = async (e) => {
     e.preventDefault();
@@ -117,22 +119,34 @@ const Upload = () => {
   );
 
   return (
-    <Box sx={{
-      p: { xs: 2, sm: 4 },
-      mt: { xs: 4, sm: 0 },
-      position: 'absolute',
-        top: '58%',
+    <Box
+      sx={{
+        position: 'absolute',
+        top: isMobile ? '0' : '52%',
         left: '50%',
-        transform: 'translate(-50%, -50%)',
+        transform: isMobile ? 'translateX(-50%)' : 'translate(-50%, -50%)',
         width: '100%',
-        maxWidth: 1000,
-        
-        boxShadow: 3,
-        borderRadius: 2,
-        backgroundColor: 'white',
-        textAlign: 'center',
-    }}>
-      <Container maxWidth="md">
+        px: { xs: 1, sm: 4 },
+        py: { xs: 2, sm: 4 },
+        maxWidth: isMobile ? '98%' : 1000,
+        height: isMobile ? '100%' : 'auto',
+        overflowY: 'auto'
+      }}
+    >
+      <Container
+        sx={{
+          p: { xs: 2, sm: 4 },
+          backgroundColor: 'white',
+          boxShadow: 3,
+          borderRadius: 2,
+          textAlign: 'center',
+          minHeight: '70vh'
+        }}
+      >
+        <Typography variant="h6" align="center" gutterBottom>
+          📤 Upload a File
+        </Typography>
+
         <form onSubmit={handleUpload}>
           <TextField
             type="file"
@@ -151,106 +165,105 @@ const Upload = () => {
           </Button>
         </form>
 
-        <Box sx={{ mt: 4 }}>
-          <TextField
-            fullWidth
-            variant="outlined"
-            placeholder="Search files by filename..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            InputProps={{
-              startAdornment: <SearchIcon sx={{ mr: 1 }} />
-            }}
-            sx={{ mb: 2 }}
-          />
-        </Box>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Search files by filename..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          InputProps={{
+            startAdornment: <SearchIcon sx={{ mr: 1 }} />
+          }}
+          sx={{ mt: 4, mb: 2 }}
+        />
 
-        <Box>
-          <Typography variant="h6" gutterBottom>Your Files:</Typography>
+        <Typography variant="h6" gutterBottom>
+          📁 Your Files
+        </Typography>
 
-          {loading ? (
-            <Box display="flex" justifyContent="center" alignItems="center" mt={4}>
-              <CircularProgress />
-            </Box>
-          ) : filteredFiles.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">
-              No matching files found.
-            </Typography>
-          ) : (
-            <Box sx={{ maxHeight: '60vh', overflowY: 'auto' }}>
-              <Box sx={{ overflowX: isMobile ? 'auto' : 'visible' }}>
-                <TableContainer component={Paper} elevation={3}>
-                  <Table size={isMobile ? 'small' : 'medium'}>
-                    <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
-                      <TableRow>
-                        <TableCell><strong>Filename</strong></TableCell>
-                        <TableCell><strong>Uploaded At</strong></TableCell>
-                        <TableCell align="right"><strong>Actions</strong></TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {filteredFiles.map((f) => (
-                        <TableRow key={f._id} hover>
-                          <TableCell sx={{ maxWidth: 200, wordBreak: 'break-word' }}>
-                           <Button
-  onClick={() => navigate(`/preview/${f._id}`)}
-  sx={{ textTransform: 'none', padding: 0 }}
->
-  {f.filename}
-</Button>
-                          </TableCell>
-                          <TableCell>
-                            {new Date(f.createdAt || f.uploadedAt || f.updatedAt).toLocaleString()}
-                          </TableCell>
-                          <TableCell align="right">
+        {loading ? (
+          <Box display="flex" justifyContent="center" alignItems="center" mt={4}>
+            <CircularProgress />
+          </Box>
+        ) : filteredFiles.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">
+            No matching files found.
+          </Typography>
+        ) : (
+          <Box sx={{ maxHeight: '60vh', overflowY: 'auto' }}>
+            <Box sx={{ overflowX: isMobile ? 'auto' : 'visible' }}>
+              <TableContainer component={Paper} elevation={3}>
+                <Table size={isMobile ? 'small' : 'medium'}>
+                  <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
+                    <TableRow>
+                      <TableCell><strong>Filename</strong></TableCell>
+                      <TableCell><strong>Uploaded At</strong></TableCell>
+                      <TableCell align="right"><strong>Actions</strong></TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredFiles.map((f) => (
+                      <TableRow key={f._id} hover>
+                        <TableCell sx={{ wordBreak: 'break-word', maxWidth: { xs: 150, sm: 300 } }}>
+                          <Button
+                            onClick={() => navigate(`/preview/${f._id}`)}
+                            sx={{ textTransform: 'none', padding: 0 }}
+                          >
+                            {f.filename}
+                          </Button>
+                        </TableCell>
+                        <TableCell>
+                          {new Date(f.createdAt || f.uploadedAt || f.updatedAt).toLocaleString()}
+                        </TableCell>
+                        <TableCell align="right">
                           <IconButton
-                onClick={() => {
-    const link = document.createElement('a');
-    // Append Cloudinary download parameter
-    link.href = `${f.url}?fl_attachment=true`; 
-    link.setAttribute('download', f.filename); // fallback for older browsers
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }}
-  color="primary"
-  title="Download"
->
-  <DownloadIcon />
-</IconButton>
-
-                            <IconButton
-                              onClick={() => setEditDialog({ open: true, id: f._id, oldName: f.filename, newName: f.filename })}
-                              color="secondary"
-                              title="Edit"
-                            >
-                              <EditIcon />
-                            </IconButton>
-
-                            <IconButton
-                              onClick={() => setDeleteDialog({ open: true, id: f._id })}
-                              color="error"
-                              title="Delete"
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Box>
+                            onClick={() => {
+                              const link = document.createElement('a');
+                              link.href = `${f.url}?fl_attachment=true`;
+                              link.setAttribute('download', f.filename);
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                            }}
+                            color="primary"
+                            title="Download"
+                          >
+                            <DownloadIcon />
+                          </IconButton>
+                          <IconButton
+                            onClick={() => setEditDialog({
+                              open: true,
+                              id: f._id,
+                              oldName: f.filename,
+                              newName: f.filename
+                            })}
+                            color="secondary"
+                            title="Edit"
+                          >
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton
+                            onClick={() => setDeleteDialog({ open: true, id: f._id })}
+                            color="error"
+                            title="Delete"
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
             </Box>
-          )}
-        </Box>
+          </Box>
+        )}
 
         <Snackbar
           open={snackbar.open}
           autoHideDuration={3000}
           onClose={() => setSnackbar({ ...snackbar, open: false })}
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-          sx={{ top: '10vh' }}
         >
           <Alert
             onClose={() => setSnackbar({ ...snackbar, open: false })}
@@ -261,7 +274,7 @@ const Upload = () => {
           </Alert>
         </Snackbar>
 
-        <Dialog open={editDialog.open} onClose={() => setEditDialog({ ...editDialog, open: false })}>
+        <Dialog open={editDialog.open} onClose={() => setEditDialog({ ...editDialog, open: false })} fullWidth maxWidth="xs">
           <DialogTitle>Edit Filename</DialogTitle>
           <DialogContent>
             <TextField
@@ -279,7 +292,7 @@ const Upload = () => {
           </DialogActions>
         </Dialog>
 
-        <Dialog open={deleteDialog.open} onClose={() => setDeleteDialog({ open: false, id: '' })}>
+        <Dialog open={deleteDialog.open} onClose={() => setDeleteDialog({ open: false, id: '' })} fullWidth maxWidth="xs">
           <DialogTitle>Confirm Delete</DialogTitle>
           <DialogContent>
             <DialogContentText>
