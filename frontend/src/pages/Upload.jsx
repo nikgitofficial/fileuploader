@@ -12,6 +12,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import DownloadIcon from '@mui/icons-material/Download';
 import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import axios from '../api/axios';
 
 const Alert = React.forwardRef(function Alert(props, ref) {
@@ -30,6 +32,8 @@ const Upload = () => {
 
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const showSnackbar = (message, severity = 'success') => {
     setSnackbar({ open: true, message, severity });
@@ -114,17 +118,19 @@ const Upload = () => {
 
   return (
     <Box sx={{
+      p: { xs: 2, sm: 4 },
+      mt: { xs: 4, sm: 0 },
       position: 'absolute',
-      top: '55%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      width: '100%',
-      maxWidth: 1000,
-      p: 4,
-      boxShadow: 3,
-      borderRadius: 2,
-      backgroundColor: 'white',
-      textAlign: 'center',
+        top: '58%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '100%',
+        maxWidth: 1000,
+        
+        boxShadow: 3,
+        borderRadius: 2,
+        backgroundColor: 'white',
+        textAlign: 'center',
     }}>
       <Container maxWidth="md">
         <form onSubmit={handleUpload}>
@@ -172,74 +178,70 @@ const Upload = () => {
             </Typography>
           ) : (
             <Box sx={{ maxHeight: '60vh', overflowY: 'auto' }}>
-              <TableContainer component={Paper} elevation={3}>
-                <Table>
-                  <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
-                    <TableRow>
-                      <TableCell><strong>Filename</strong></TableCell>
-                      <TableCell><strong>Uploaded At</strong></TableCell>
-                      <TableCell align="right"><strong>Actions</strong></TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {filteredFiles.map((f) => (
-                      <TableRow key={f._id} hover>
-                        <TableCell>
-                          <a href={f.url} target="_blank" rel="noopener noreferrer">
-                            {f.filename}
-                          </a>
-                        </TableCell>
-                        <TableCell>
-                          {new Date(f.createdAt || f.uploadedAt || f.updatedAt).toLocaleString()}
-                        </TableCell>
-                        <TableCell align="right">
-                          <IconButton
-                            onClick={() => window.open(f.url, '_blank')}
-                            color="primary"
-                            title="View"
-                          >📄</IconButton>
-
-                          <IconButton
-                            onClick={() => {
-                              const link = document.createElement('a');
-                              link.href = f.url;
-                              link.download = f.filename;
-                              document.body.appendChild(link);
-                              link.click();
-                              document.body.removeChild(link);
-                            }}
-                            color="primary"
-                            title="Download"
-                          >
-                            <DownloadIcon />
-                          </IconButton>
-
-                          <IconButton
-                            onClick={() => setEditDialog({ open: true, id: f._id, oldName: f.filename, newName: f.filename })}
-                            color="secondary"
-                            title="Edit"
-                          >
-                            <EditIcon />
-                          </IconButton>
-
-                          <IconButton
-                            onClick={() => setDeleteDialog({ open: true, id: f._id })}
-                            color="error"
-                            title="Delete"
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </TableCell>
+              <Box sx={{ overflowX: isMobile ? 'auto' : 'visible' }}>
+                <TableContainer component={Paper} elevation={3}>
+                  <Table size={isMobile ? 'small' : 'medium'}>
+                    <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
+                      <TableRow>
+                        <TableCell><strong>Filename</strong></TableCell>
+                        <TableCell><strong>Uploaded At</strong></TableCell>
+                        <TableCell align="right"><strong>Actions</strong></TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                    </TableHead>
+                    <TableBody>
+                      {filteredFiles.map((f) => (
+                        <TableRow key={f._id} hover>
+                          <TableCell sx={{ maxWidth: 200, wordBreak: 'break-word' }}>
+                            <a href={f.url} target="_blank" rel="noopener noreferrer">
+                              {f.filename}
+                            </a>
+                          </TableCell>
+                          <TableCell>
+                            {new Date(f.createdAt || f.uploadedAt || f.updatedAt).toLocaleString()}
+                          </TableCell>
+                          <TableCell align="right">
+                          <IconButton
+                onClick={() => {
+    const link = document.createElement('a');
+    // Append Cloudinary download parameter
+    link.href = `${f.url}?fl_attachment=true`; 
+    link.setAttribute('download', f.filename); // fallback for older browsers
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }}
+  color="primary"
+  title="Download"
+>
+  <DownloadIcon />
+</IconButton>
+
+                            <IconButton
+                              onClick={() => setEditDialog({ open: true, id: f._id, oldName: f.filename, newName: f.filename })}
+                              color="secondary"
+                              title="Edit"
+                            >
+                              <EditIcon />
+                            </IconButton>
+
+                            <IconButton
+                              onClick={() => setDeleteDialog({ open: true, id: f._id })}
+                              color="error"
+                              title="Delete"
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
             </Box>
           )}
         </Box>
 
-        {/* Snackbar */}
         <Snackbar
           open={snackbar.open}
           autoHideDuration={3000}
@@ -256,7 +258,6 @@ const Upload = () => {
           </Alert>
         </Snackbar>
 
-        {/* Edit Dialog */}
         <Dialog open={editDialog.open} onClose={() => setEditDialog({ ...editDialog, open: false })}>
           <DialogTitle>Edit Filename</DialogTitle>
           <DialogContent>
@@ -275,7 +276,6 @@ const Upload = () => {
           </DialogActions>
         </Dialog>
 
-        {/* Delete Confirmation Dialog */}
         <Dialog open={deleteDialog.open} onClose={() => setDeleteDialog({ open: false, id: '' })}>
           <DialogTitle>Confirm Delete</DialogTitle>
           <DialogContent>

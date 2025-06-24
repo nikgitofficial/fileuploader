@@ -4,26 +4,43 @@ import {
   Box, Typography, Paper, Link, Grid, Avatar
 } from '@mui/material';
 import { Email, Facebook, Phone, Language } from '@mui/icons-material';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 const Contact = () => {
-  return (
-    <Box sx={
-      { mt: 10, 
-        px: 2,
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: '200%',
-        maxWidth: 600,
-        p: 4,
-        boxShadow: 3,
-        borderRadius: 2,
-        backgroundColor: 'white',
-        textAlign: 'center',
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-     }}>
-      <Paper elevation={4} sx={{ p: 4, maxWidth: 600, mx: 'auto', borderRadius: 4 }}>
+  return (
+    <Box
+      sx={{
+        mt: isMobile ? 4 : 10,
+       
+        width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
+      }}
+    >
+      <Paper
+        elevation={4}
+        sx={{
+          p: isMobile ? 2 : 4,
+          maxWidth: 600,
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '100%',
+          
+          boxShadow: 3,
+          borderRadius: 2,
+          backgroundColor: 'white',
+          textAlign: 'center',
+        }}
+        
+        
+   
+      >
         <Typography variant="h5" gutterBottom align="center" color="primary">
           📞 Contact Information
         </Typography>
@@ -34,29 +51,33 @@ const Contact = () => {
 
         <Grid container spacing={2}>
           <Grid item xs={12}>
-            <Box display="flex" alignItems="center" gap={2}>
+            <Box display="flex" flexDirection={isMobile ? 'column' : 'row'} alignItems="center" gap={2}>
               <Avatar sx={{ bgcolor: '#3b5998' }}>
                 <Facebook />
               </Avatar>
-              <Link href="https://www.facebook.com/Nikko Mirafuentes Paceno" target="_blank" underline="hover">
-                facebook.com/Nikko Mirafuentes Paceno
-              </Link>
+              <Link
+  href="https://www.facebook.com/Nikko%20Mirafuentes%20Paceno"
+  target="_blank"
+  underline="hover"
+>
+  facebook.com/Nikko Mirafuentes Paceno
+</Link>
             </Box>
           </Grid>
 
-        <Grid item xs={12}>
-  <Box display="flex" alignItems="center" gap={2}>
-    <Avatar
-      src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Gmail_Icon.png"
-      alt="Gmail"
-      sx={{ bgcolor: 'white', width: 40, height: 40 }}
-    />
-    <Typography variant="body1">nickforjobacc@gmail.com</Typography>
-  </Box>
-</Grid>
+          <Grid item xs={12}>
+            <Box display="flex" flexDirection={isMobile ? 'column' : 'row'} alignItems="center" gap={2}>
+              <Avatar
+                src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Gmail_Icon.png"
+                alt="Gmail"
+                sx={{ bgcolor: 'white', width: 40, height: 40 }}
+              />
+              <Typography variant="body1">nickforjobacc@gmail.com</Typography>
+            </Box>
+          </Grid>
 
           <Grid item xs={12}>
-            <Box display="flex" alignItems="center" gap={2}>
+            <Box display="flex" flexDirection={isMobile ? 'column' : 'row'} alignItems="center" gap={2}>
               <Avatar sx={{ bgcolor: 'success.main' }}>
                 <Phone />
               </Avatar>
@@ -65,7 +86,7 @@ const Contact = () => {
           </Grid>
 
           <Grid item xs={12}>
-            <Box display="flex" alignItems="center" gap={2}>
+            <Box display="flex" flexDirection={isMobile ? 'column' : 'row'} alignItems="center" gap={2}>
               <Avatar sx={{ bgcolor: 'info.main' }}>
                 <Language />
               </Avatar>

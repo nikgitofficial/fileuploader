@@ -1,7 +1,7 @@
 import cloudinary from '../utils/cloudinary.js';
 import File from '../models/File.js';
 import { Readable } from 'stream';
-import mongoose from 'mongoose'; // ✅ for ObjectId validation
+import mongoose from 'mongoose';
 
 // 📤 Upload File Controller
 export const uploadFile = async (req, res) => {
@@ -17,8 +17,12 @@ export const uploadFile = async (req, res) => {
       return readable;
     };
 
+    // ✅ Upload using Cloudinary as RAW type
     const stream = cloudinary.uploader.upload_stream(
-      { resource_type: 'auto' },
+      {
+        resource_type: 'raw', // ✅ force raw for PDF/doc/etc
+        folder: 'uploads',    // optional folder organization
+      },
       async (error, result) => {
         if (error) {
           console.error('❌ Cloudinary upload error:', error);
@@ -49,7 +53,6 @@ export const deleteFile = async (req, res) => {
   try {
     const fileId = req.params.id;
 
-    // ✅ Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(fileId)) {
       return res.status(400).json({ error: 'Invalid file ID' });
     }
@@ -59,7 +62,6 @@ export const deleteFile = async (req, res) => {
       return res.status(404).json({ error: 'File not found' });
     }
 
-    // ✅ Authorization check
     if (file.userId?.toString() !== req.userId?.toString()) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
@@ -68,23 +70,19 @@ export const deleteFile = async (req, res) => {
     if (file.public_id) {
       try {
         await cloudinary.uploader.destroy(file.public_id, {
-          resource_type: 'auto',
+          resource_type: 'raw', // ✅ match what was used on upload
         });
       } catch (cloudErr) {
         console.warn('⚠️ Cloudinary delete failed:', cloudErr.message);
       }
-    } else {
-      console.warn(`⚠️ No public_id for file "${file.filename}", skipping Cloudinary deletion.`);
     }
 
-    // ✅ Delete from MongoDB
     await File.findByIdAndDelete(fileId);
 
     console.log(`✅ Deleted file: ${file.filename} (${fileId})`);
     res.status(200).json({ message: 'File deleted successfully' });
   } catch (err) {
     console.error('❌ Delete error:', err.message);
-    console.error(err.stack);
     res.status(500).json({ error: 'Failed to delete file' });
   }
 };
@@ -99,11 +97,11 @@ export const getUserFiles = async (req, res) => {
     res.status(500).json({ error: 'Failed to retrieve files' });
   }
 };
-//update logic
+
+// ✏️ Update Filename Controller
 export const updateFileName = async (req, res) => {
   try {
     const file = await File.findById(req.params.id);
-
     if (!file) return res.status(404).json({ error: 'File not found' });
     if (file.userId.toString() !== req.userId)
       return res.status(403).json({ error: 'Unauthorized' });
@@ -116,4 +114,4 @@ export const updateFileName = async (req, res) => {
     console.error('❌ Edit error:', err);
     res.status(500).json({ error: 'Failed to update file' });
   }
-}
+};

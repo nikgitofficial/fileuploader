@@ -235,15 +235,15 @@ const AdminFilesPage = () => {
 
       {/* Snackbar Notification */}
       <Snackbar
-        open={snackOpen}
-        autoHideDuration={3000}
-        onClose={() => setSnackOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert onClose={() => setSnackOpen(false)} severity="info" sx={{ width: '100%' }}>
-          {snackMsg}
-        </Alert>
-      </Snackbar>
+  open={snackOpen}
+  autoHideDuration={3000}
+  onClose={() => setSnackOpen(false)}
+  anchorOrigin={{ vertical: 'center', horizontal: 'center' }}
+>
+  <Alert onClose={() => setSnackOpen(false)} severity="info" sx={{ width: '100%' }}>
+    {snackMsg}
+  </Alert>
+</Snackbar>
     </Container>
   );
 };
