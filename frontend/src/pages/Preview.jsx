@@ -1,4 +1,5 @@
-    import { useParams } from 'react-router-dom';
+// src/pages/Preview.jsx
+import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import axios from '../api/axios';
 import { Box, Typography, CircularProgress } from '@mui/material';
@@ -26,13 +27,16 @@ const Preview = () => {
     fetchFile();
   }, [id]);
 
-  if (loading) return <Box p={4}><CircularProgress /></Box>;
-  if (!file) return <Box p={4}><Typography>File not found</Typography></Box>;
+  if (loading) return <CircularProgress />;
+  if (!file) return <Typography>File not found</Typography>;
 
-  const isImage = file.type.includes('image');
-  const isPDF = file.type.includes('pdf');
-  const isVideo = file.type.includes('video');
-  const isDoc = file.type.includes('word') || file.type.includes('presentation') || file.type.includes('spreadsheet');
+  const isImage = file.type.startsWith('image/');
+  const isPDF = file.type === 'application/pdf';
+  const isText = file.type.startsWith('text/');
+  const isDocOrSheet = [
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ].includes(file.type);
 
   return (
     <Box sx={{ p: 4 }}>
@@ -46,22 +50,23 @@ const Preview = () => {
           title="PDF Preview"
           style={{ width: '100%', height: '80vh', border: 'none' }}
         />
-      ) : isVideo ? (
-        <video controls style={{ maxWidth: '100%' }}>
-          <source src={file.url} type={file.type} />
-          Your browser does not support the video tag.
-        </video>
-      ) : isDoc ? (
+      ) : isText ? (
         <iframe
-          src={`https://docs.google.com/gview?url=${encodeURIComponent(file.url)}&embedded=true`}
-          title="Document Preview"
+          src={file.url}
+          title="Text File Preview"
+          style={{ width: '100%', height: '80vh', border: '1px solid #ccc' }}
+        />
+      ) : isDocOrSheet ? (
+        <iframe
+          src={`https://docs.google.com/viewer?url=${encodeURIComponent(file.url)}&embedded=true`}
+          title="Office Preview"
           style={{ width: '100%', height: '80vh', border: 'none' }}
         />
       ) : (
         <Typography>
           No preview available.{' '}
           <a href={file.url} target="_blank" rel="noopener noreferrer">
-            Open or download file
+            Open or Download
           </a>
         </Typography>
       )}

@@ -17,9 +17,15 @@ export const uploadFile = async (req, res) => {
       return readable;
     };
 
+    // Dynamically determine resource type
+    let resourceType = 'raw';
+    if (req.file.mimetype.startsWith('image/')) {
+      resourceType = 'image';
+    }
+
     const stream = cloudinary.uploader.upload_stream(
       {
-        resource_type: 'raw',
+        resource_type: resourceType,
         folder: 'uploads',
       },
       async (error, result) => {
@@ -68,7 +74,7 @@ export const deleteFile = async (req, res) => {
     if (file.public_id) {
       try {
         await cloudinary.uploader.destroy(file.public_id, {
-          resource_type: 'raw',
+          resource_type: file.type.startsWith('image/') ? 'image' : 'raw',
         });
       } catch (cloudErr) {
         console.warn('⚠️ Cloudinary delete failed:', cloudErr.message);
@@ -101,8 +107,10 @@ export const updateFileName = async (req, res) => {
   try {
     const file = await File.findById(req.params.id);
     if (!file) return res.status(404).json({ error: 'File not found' });
-    if (file.userId.toString() !== req.userId)
+
+    if (file.userId.toString() !== req.userId) {
       return res.status(403).json({ error: 'Unauthorized' });
+    }
 
     file.filename = req.body.filename || file.filename;
     await file.save();
