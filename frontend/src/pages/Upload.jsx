@@ -192,9 +192,12 @@ const Upload = () => {
                       {filteredFiles.map((f) => (
                         <TableRow key={f._id} hover>
                           <TableCell sx={{ maxWidth: 200, wordBreak: 'break-word' }}>
-                            <a href={f.url} target="_blank" rel="noopener noreferrer">
-                              {f.filename}
-                            </a>
+                           <Button
+  onClick={() => navigate(`/preview/${f._id}`)}
+  sx={{ textTransform: 'none', padding: 0 }}
+>
+  {f.filename}
+</Button>
                           </TableCell>
                           <TableCell>
                             {new Date(f.createdAt || f.uploadedAt || f.updatedAt).toLocaleString()}
