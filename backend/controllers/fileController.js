@@ -19,7 +19,7 @@ export const uploadFile = async (req, res) => {
 
     const stream = cloudinary.uploader.upload_stream(
       {
-        resource_type: 'auto',
+        resource_type: 'raw',
         folder: 'uploads',
       },
       async (error, result) => {
