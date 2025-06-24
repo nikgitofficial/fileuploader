@@ -13,6 +13,7 @@ import About from './pages/About';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminFilesPage from './pages/AdminFilesPage';
 import AdminUsersPage from './pages/AdminUsersPage';
+import FilePreview from './pages/FilePreview'; 
 function App() {
   return (
     <AuthProvider>
@@ -32,6 +33,7 @@ function App() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/file/:id" element={<FilePreview />} />
              
             </Routes>
           </Box>

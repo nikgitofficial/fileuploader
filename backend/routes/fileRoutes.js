@@ -1,20 +1,30 @@
 import express from 'express';
-import { uploadFile, getUserFiles, deleteFile, updateFileName } from '../controllers/fileController.js';
+import {
+  uploadFile,
+  getUserFiles,
+  deleteFile,
+  updateFileName,
+  getFileById 
+} from '../controllers/fileController.js';
+
 import { verifyToken } from '../middleware/auth.js';
-import { upload } from '../middleware/upload.js'; // ✅ import clean multer setup
+import { upload } from '../middleware/upload.js';
 
 const router = express.Router();
 
-// ✅ POST /api/files/upload
+// ✅ Upload file
 router.post('/upload', verifyToken, upload.single('file'), uploadFile);
 
-// ✅ GET /api/files/ → list all user's files
+// ✅ List user's files
 router.get('/', verifyToken, getUserFiles);
 
-// ✅ DELETE /api/files/:id
+// ✅ Get file by ID (for preview)
+router.get('/:id', verifyToken, getFileById); // ✅ Add this route
+
+// ✅ Delete file
 router.delete('/:id', verifyToken, deleteFile);
-    
-// ✅ update /api/files/:id
+
+// ✅ Update filename
 router.put('/:id', verifyToken, updateFileName);
 
 export default router;

@@ -238,7 +238,7 @@ const AdminFilesPage = () => {
   open={snackOpen}
   autoHideDuration={3000}
   onClose={() => setSnackOpen(false)}
-  anchorOrigin={{ vertical: 'center', horizontal: 'center' }}
+  anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
 >
   <Alert onClose={() => setSnackOpen(false)} severity="info" sx={{ width: '100%' }}>
     {snackMsg}
