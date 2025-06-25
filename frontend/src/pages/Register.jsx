@@ -75,7 +75,11 @@ const Register = () => {
       setOtpToken(res.data.otpToken);
       setStep(3);
     } catch (err) {
-      setError(err.response?.data?.error || 'Invalid OTP');
+      if (err.response?.status === 429) {
+  setError(err.response.data.error || 'Too many attempts. Try again later.');
+} else {
+  setError(err.response?.data?.error || 'Invalid OTP');
+}
     } finally {
       setLoading(false);
     }
