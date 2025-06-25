@@ -1,18 +1,14 @@
 import OtpToken from '../models/Otp.js';
 import { sendOtpEmail } from '../utils/mailer.js';
 import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
+
+const OTP_SECRET = process.env.OTP_SECRET || 'otp_secret_key';
 
 // Send OTP
 export const sendOtp = async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email is required' });
-
-//
-//  const existingOtp = await OtpToken.findOne({ email });
-//if (existingOtp && existingOtp.expiresAt > new Date()) {
-//return res.status(429).json({ error: 'Please wait before requesting another OTP.' });
-//}
-//
 
   // ✅ Generate OTP and expiry
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -40,11 +36,13 @@ export const verifyOtp = async (req, res) => {
     return res.status(400).json({ error: 'Invalid or expired OTP' });
   }
 
-  // ✅ Generate temporary OTP token for registration
-  const otpToken = crypto.randomBytes(16).toString('hex');
+  // ✅ Generate JWT token (instead of a random hex string)
+  const otpToken = jwt.sign({ email }, OTP_SECRET, { expiresIn: '10m' });
+
+  // ✅ Update DB to invalidate the numeric OTP
   await OtpToken.findOneAndUpdate(
     { email },
-    { otp: otpToken, expiresAt: new Date(Date.now() + 10 * 60 * 1000) }
+    { otp: null, expiresAt: new Date() } // optionally clear OTP
   );
 
   res.status(200).json({ otpToken });

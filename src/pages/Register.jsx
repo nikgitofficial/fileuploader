@@ -4,13 +4,15 @@ import {
   Button,
   Typography,
   Link as MuiLink,
-  Box
+  Box,
 } from '@mui/material';
 import axios from '../api/axios';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 
 const Register = () => {
-  const [form, setForm] = useState({ email: '', password: '', otpToken: '' });
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [otpCode, setOtpCode] = useState('');
+  const [otpToken, setOtpToken] = useState('');
   const [step, setStep] = useState(1);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -24,11 +26,27 @@ const Register = () => {
     setError('');
     setSuccessMsg('');
     try {
-      const res = await axios.post('/auth/send-otp', { email: form.email });
-      setSuccessMsg('✅ OTP sent to your email. Paste the code here to proceed.');
+      await axios.post('/auth/send-otp', { email: form.email });
+      setSuccessMsg('✅ OTP sent to your email. Please check and enter it.');
       setStep(2);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to send OTP');
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    setError('');
+    setSuccessMsg('');
+    try {
+      const res = await axios.post('/auth/verify-otp', {
+        email: form.email,
+        otp: otpCode,
+      });
+      setOtpToken(res.data.otpToken);
+      setSuccessMsg('✅ OTP verified! You can now set your password.');
+      setStep(3);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Invalid or expired OTP');
     }
   };
 
@@ -36,7 +54,10 @@ const Register = () => {
     e.preventDefault();
     setError('');
     try {
-      await axios.post('/auth/register', form);
+      await axios.post('/auth/register', {
+        ...form,
+        otpToken,
+      });
       navigate('/login');
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed');
@@ -72,6 +93,7 @@ const Register = () => {
               fullWidth
               margin="normal"
               onChange={handleChange}
+              value={form.email}
             />
             <Button variant="contained" fullWidth sx={{ mt: 2 }} onClick={handleSendOtp}>
               Send OTP
@@ -82,12 +104,20 @@ const Register = () => {
         {step === 2 && (
           <>
             <TextField
-              label="OTP Token (Check your Gmail)"
-              name="otpToken"
+              label="Enter OTP (from email)"
               fullWidth
               margin="normal"
-              onChange={handleChange}
+              value={otpCode}
+              onChange={(e) => setOtpCode(e.target.value)}
             />
+            <Button variant="contained" fullWidth sx={{ mt: 2 }} onClick={handleVerifyOtp}>
+              Verify OTP
+            </Button>
+          </>
+        )}
+
+        {step === 3 && (
+          <>
             <TextField
               label="Password"
               name="password"
@@ -95,6 +125,7 @@ const Register = () => {
               fullWidth
               margin="normal"
               onChange={handleChange}
+              value={form.password}
             />
             <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
               Register
