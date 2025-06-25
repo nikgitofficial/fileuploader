@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   TextField,
   Button,
@@ -21,41 +21,110 @@ const Register = () => {
   const [step, setStep] = useState(1);
   const [otpToken, setOtpToken] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [resendAttempts, setResendAttempts] = useState(0);
+  const [otpLockTime, setOtpLockTime] = useState(0);
+  const [lockCountdown, setLockCountdown] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const MAX_RESEND_ATTEMPTS = 3;
+  const LOCK_DURATION_MS = 10 * 60 * 1000;
 
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  // Load from localStorage
+  useEffect(() => {
+    const attempts = localStorage.getItem('resendAttempts');
+    const lock = localStorage.getItem('otpLockTime');
+    if (attempts) setResendAttempts(parseInt(attempts));
+    if (lock) setOtpLockTime(parseInt(lock));
+  }, []);
 
-  const togglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev);
-  };
+  // Save resend attempts
+  useEffect(() => {
+    localStorage.setItem('resendAttempts', resendAttempts.toString());
+  }, [resendAttempts]);
 
-  const startCooldown = () => {
-    setResendCooldown(30);
-    const interval = setInterval(() => {
-      setResendCooldown((prev) => {
+  // Resend cooldown countdown
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown(prev => {
         if (prev <= 1) {
-          clearInterval(interval);
+          clearInterval(timer);
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
+  // Lockout countdown
+  useEffect(() => {
+    if (!otpLockTime) return;
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const remaining = otpLockTime - now;
+      if (remaining <= 0) {
+        clearInterval(interval);
+        setOtpLockTime(0);
+        setResendAttempts(0);
+        setLockCountdown(0);
+        localStorage.removeItem('otpLockTime');
+        localStorage.removeItem('resendAttempts');
+      } else {
+        setLockCountdown(Math.floor(remaining / 1000));
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [otpLockTime]);
+
+  const clearLock = () => {
+    setResendAttempts(0);
+    setResendCooldown(0);
+    setOtpLockTime(0);
+    setLockCountdown(0);
+    setError('');
+    localStorage.removeItem('otpLockTime');
+    localStorage.removeItem('resendAttempts');
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => {
+      if (name === 'email' && value !== prev.email) clearLock();
+      return { ...prev, [name]: value };
+    });
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(prev => !prev);
+  };
+
+  const startCooldown = () => {
+    setResendCooldown(30);
   };
 
   const handleSendOtp = async () => {
     setError('');
     if (!form.email) return setError('Please enter your email.');
+    if (otpLockTime > Date.now()) return;
+
+    if (resendAttempts >= MAX_RESEND_ATTEMPTS) {
+      const lockUntil = Date.now() + LOCK_DURATION_MS;
+      setOtpLockTime(lockUntil);
+      localStorage.setItem('otpLockTime', lockUntil.toString());
+      return;
+    }
+
     try {
       setLoading(true);
       await axios.post('/auth/send-otp', { email: form.email });
       setStep(2);
+      setResendAttempts(prev => prev + 1);
       startCooldown();
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to send OTP');
@@ -75,25 +144,19 @@ const Register = () => {
       setOtpToken(res.data.otpToken);
       setStep(3);
     } catch (err) {
-      if (err.response?.status === 429) {
-  setError(err.response.data.error || 'Too many attempts. Try again later.');
-} else {
-  setError(err.response?.data?.error || 'Invalid OTP');
-}
+      setError(err.response?.data?.error || 'Invalid OTP');
     } finally {
       setLoading(false);
     }
   };
 
-  const isValidPassword = (password) => {
-    return {
-      length: password.length >= 8,
-      uppercase: /[A-Z]/.test(password),
-      lowercase: /[a-z]/.test(password),
-      number: /[0-9]/.test(password),
-      special: /[^A-Za-z0-9]/.test(password)
-    };
-  };
+  const isValidPassword = (password) => ({
+    length: password.length >= 8,
+    uppercase: /[A-Z]/.test(password),
+    lowercase: /[a-z]/.test(password),
+    number: /[0-9]/.test(password),
+    special: /[^A-Za-z0-9]/.test(password)
+  });
 
   const getPasswordStrength = () => {
     const rules = isValidPassword(form.password);
@@ -102,9 +165,7 @@ const Register = () => {
   };
 
   const suggestStrongPassword = () => {
-    const strong = Math.random().toString(36).slice(2, 6) + 
-                   'Aa1!' + 
-                   Math.random().toString(36).slice(2, 6);
+    const strong = Math.random().toString(36).slice(2, 6) + 'Aa1!' + Math.random().toString(36).slice(2, 6);
     setForm({ ...form, password: strong, confirmPassword: strong });
   };
 
@@ -134,6 +195,13 @@ const Register = () => {
   };
 
   const passwordRules = isValidPassword(form.password);
+
+  const otpLocked = otpLockTime > Date.now();
+  const retryMessage = otpLocked
+    ? `Too many attempts. Try again in ${lockCountdown}s`
+    : resendCooldown > 0
+    ? `Please wait ${resendCooldown}s`
+    : '';
 
   return (
     <Box
@@ -172,10 +240,15 @@ const Register = () => {
               fullWidth
               onClick={handleSendOtp}
               sx={{ mt: 2 }}
-              disabled={loading}
+              disabled={loading || otpLocked || resendCooldown > 0}
             >
               {loading ? 'Sending...' : 'Send OTP'}
             </Button>
+            {retryMessage && (
+              <Typography variant="caption" color="error">
+                {retryMessage}
+              </Typography>
+            )}
           </>
         )}
 
@@ -205,10 +278,15 @@ const Register = () => {
               fullWidth
               sx={{ mt: 1 }}
               onClick={handleSendOtp}
-              disabled={resendCooldown > 0 || loading}
+              disabled={loading || otpLocked || resendCooldown > 0}
             >
-              {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend OTP'}
+              Resend OTP
             </Button>
+            {retryMessage && (
+              <Typography variant="caption" color="error">
+                {retryMessage}
+              </Typography>
+            )}
           </>
         )}
 
@@ -233,40 +311,22 @@ const Register = () => {
               }}
             />
             <Box textAlign="left" mt={1}>
-              <Typography variant="caption" color={passwordRules.length ? 'green' : 'error'}>
-                ✅ At least 8 characters
-              </Typography><br />
-              <Typography variant="caption" color={passwordRules.uppercase ? 'green' : 'error'}>
-                ✅ At least 1 uppercase
-              </Typography><br />
-              <Typography variant="caption" color={passwordRules.lowercase ? 'green' : 'error'}>
-                ✅ At least 1 lowercase
-              </Typography><br />
-              <Typography variant="caption" color={passwordRules.number ? 'green' : 'error'}>
-                ✅ At least 1 number
-              </Typography><br />
-              <Typography variant="caption" color={passwordRules.special ? 'green' : 'error'}>
-                ✅ At least 1 special character
-              </Typography>
+              {Object.entries(passwordRules).map(([rule, passed]) => (
+                <Typography
+                  key={rule}
+                  variant="caption"
+                  color={passed ? 'green' : 'error'}
+                >
+                  ✅ {rule.charAt(0).toUpperCase() + rule.slice(1)}
+                </Typography>
+              ))}
             </Box>
-
             <Box sx={{ width: '100%', mt: 2 }}>
-              <LinearProgress
-                variant="determinate"
-                value={getPasswordStrength()}
-                sx={{ height: 6, borderRadius: 3 }}
-              />
+              <LinearProgress variant="determinate" value={getPasswordStrength()} sx={{ height: 6, borderRadius: 3 }} />
             </Box>
-
-            <Button
-              variant="text"
-              size="small"
-              onClick={suggestStrongPassword}
-              sx={{ mt: 1 }}
-            >
+            <Button variant="text" size="small" onClick={suggestStrongPassword} sx={{ mt: 1 }}>
               🧠 Suggest Strong Password
             </Button>
-
             <TextField
               label="Confirm Password"
               name="confirmPassword"
@@ -276,15 +336,11 @@ const Register = () => {
               value={form.confirmPassword}
               onChange={handleChange}
             />
-
-            <Button
-              type="submit"
-              variant="contained"
-              fullWidth
-              sx={{ mt: 2 }}
-              disabled={loading}
-            >
+            <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }} disabled={loading}>
               {loading ? 'Registering...' : 'Register'}
+            </Button>
+            <Button variant="outlined" color="secondary" onClick={clearLock} sx={{ mt: 2 }}>
+              Clear Lock (Dev)
             </Button>
           </>
         )}

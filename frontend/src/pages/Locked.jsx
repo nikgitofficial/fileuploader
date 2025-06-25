@@ -93,7 +93,13 @@ const Locked = () => {
           >
             {countdown > 0 ? `Try in ${formatTime(countdown)}` : 'Try Again'}
           </Button>
-
+        <Button
+            variant="outlined"
+            color="secondary"
+            onClick={resetLock}
+          >
+            Clear Lock (Dev)
+</Button>
          
         </Box>
       </Paper>
