@@ -1,18 +1,35 @@
 import React from 'react';
 import {
-  Box, Container, Typography, Paper, Grid, Avatar, Link, Divider
+  Box,
+  Container,
+  Typography,
+  Paper,
+  Grid,
+  Avatar,
+  Link,
+  Divider,
+  useTheme
 } from '@mui/material';
 import {
-  GitHub, Language, YouTube, Cloud, Storage, Security, MusicNote
+  GitHub,
+  Language,
+  YouTube,
+  Cloud,
+  Storage,
+  Security,
+  MusicNote,
+  Lock
 } from '@mui/icons-material';
 
 const techStack = [
-  { name: 'React + Vite', icon: <Language color="primary" /> },
-  { name: 'Node.js + Express', icon: <Storage color="success" /> },
-  { name: 'MongoDB + Mongoose', icon: <Storage color="success" /> },
-  { name: 'JWT Auth', icon: <Security color="warning" /> },
-  { name: 'Cloudinary', icon: <Cloud color="info" /> },
-  { name: 'YouTube MP3 Downloader', icon: <MusicNote color="error" /> },
+  { name: 'React + Vite', icon: <Language /> },
+  { name: 'Node.js + Express', icon: <Storage /> },
+  { name: 'MongoDB + Mongoose', icon: <Storage /> },
+  { name: 'JWT Auth', icon: <Security /> },
+  { name: 'Cloudinary', icon: <Cloud /> },
+  { name: 'YouTube MP3 Downloader', icon: <MusicNote /> },
+  { name: 'OTP Verification', icon: <Security /> },
+  { name: 'Login Lockout Security', icon: <Lock /> },
 ];
 
 const socialLinks = [
@@ -22,49 +39,50 @@ const socialLinks = [
 ];
 
 const About = () => {
+  const theme = useTheme();
+
   return (
     <Container
       maxWidth="sm"
       sx={{
-        py: { xs: 4, md: 8 },
-        px: { xs: 2, md: 4 },
+        py: { xs: 6, sm: 8 },
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-         position: 'absolute',
-        top: '55%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: '100%',
-        maxWidth: 400,
-        p: 4,
-        boxShadow: 3,
-        borderRadius: 2,
-        backgroundColor: 'white',
-        textAlign: 'center',
+        minHeight: '100vh',
       }}
     >
       <Paper
-        elevation={3}
+        elevation={4}
         sx={{
+          width: '100%',
           p: { xs: 3, sm: 4 },
           borderRadius: 4,
-          width: '100%',
           textAlign: 'center',
+          background: `linear-gradient(135deg, ${theme.palette.background.paper}, ${theme.palette.grey[100]})`,
+          boxShadow: `0 8px 24px rgba(0,0,0,0.08)`,
         }}
       >
-        <Typography variant="h4" fontWeight="bold" gutterBottom color="primary">
+        <Typography
+          variant="h4"
+          fontWeight="bold"
+          gutterBottom
+          color="primary"
+          sx={{ fontSize: { xs: '1.8rem', sm: '2rem' } }}
+        >
           About This App
         </Typography>
 
-        <Typography variant="body1" paragraph>
+        <Typography variant="body1" paragraph sx={{ fontSize: { xs: '0.95rem', sm: '1rem' } }}>
           This app is a full-stack web application where users can:
         </Typography>
 
-        <Box component="ul" sx={{ textAlign: 'left', pl: 3, mb: 3 }}>
+        <Box component="ul" sx={{ textAlign: 'left', pl: 3, mb: 3, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
           <li>Upload and manage files (stored in Cloudinary)</li>
           <li>Download audio from YouTube as MP3</li>
           <li>Use a secure login system powered by JWT</li>
+          <li>Verify identity via OTP before registration</li>
+          <li>Get locked out after multiple failed login attempts</li>
         </Box>
 
         <Divider sx={{ my: 3 }} />
@@ -76,8 +94,19 @@ const About = () => {
           {techStack.map((tech, idx) => (
             <Grid item xs={12} sm={6} key={idx}>
               <Box display="flex" alignItems="center" gap={2}>
-                <Avatar sx={{ bgcolor: 'background.paper' }}>{tech.icon}</Avatar>
-                <Typography variant="body1">{tech.name}</Typography>
+                <Avatar
+                  sx={{
+                    bgcolor: theme.palette.grey[200],
+                    width: 40,
+                    height: 40,
+                    color: theme.palette.primary.main,
+                  }}
+                >
+                  {tech.icon}
+                </Avatar>
+                <Typography variant="body2" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+                  {tech.name}
+                </Typography>
               </Box>
             </Grid>
           ))}
@@ -91,6 +120,7 @@ const About = () => {
         <Box
           display="flex"
           justifyContent="center"
+          flexDirection={{ xs: 'column', sm: 'row' }}
           flexWrap="wrap"
           gap={2}
           mt={2}
@@ -105,10 +135,21 @@ const About = () => {
               alignItems="center"
               gap={1}
               sx={{
+                justifyContent: 'center',
                 fontSize: { xs: '0.9rem', sm: '1rem' },
+                color: theme.palette.text.primary,
               }}
             >
-              {link.icon}
+              <Avatar
+                sx={{
+                  width: 32,
+                  height: 32,
+                  bgcolor: theme.palette.grey[200],
+                  color: theme.palette.text.primary,
+                }}
+              >
+                {link.icon}
+              </Avatar>
               <Typography>{link.name}</Typography>
             </Link>
           ))}
