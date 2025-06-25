@@ -8,7 +8,7 @@ const OTP_EXPIRES_IN = '10m'; // 10 minutes
 
 // 🚀 Send OTP via Gmail
 export const sendOtp = async (req, res) => {
-  const { email } = req.body;
+  const email = req.body.email?.trim().toLowerCase();
   if (!email) return res.status(400).json({ error: 'Email is required' });
 
   try {
@@ -38,8 +38,13 @@ ${otpToken}
       `,
     };
 
-    await transporter.sendMail(mailOptions);
-    res.status(200).json({ message: 'OTP sent successfully', otpToken }); // optional return
+    await transporter.sendMail(mailOptions).catch((err) => {
+      console.error('❌ Email send failed:', err);
+      return res.status(500).json({ error: 'Failed to send OTP email' });
+    });
+
+    console.log(`📧 OTP sent to ${email}`);
+    res.status(200).json({ message: 'OTP sent successfully' /* , otpToken */ });
 
   } catch (error) {
     console.error('❌ Send OTP error:', error);
@@ -50,13 +55,13 @@ ${otpToken}
 // ✅ Register with OTP token verification
 export const register = async (req, res) => {
   try {
-    const { email, password, otpToken } = req.body;
+    const email = req.body.email?.trim().toLowerCase();
+    const { password, otpToken } = req.body;
 
     if (!email || !password || !otpToken) {
       return res.status(400).json({ error: 'Email, password, and OTP token are required' });
     }
 
-    // Verify OTP token
     let decoded;
     try {
       decoded = jwt.verify(otpToken, OTP_SECRET);
@@ -67,19 +72,27 @@ export const register = async (req, res) => {
       return res.status(401).json({ error: 'Invalid or expired OTP token' });
     }
 
-    // Check if user already exists
     const exists = await User.findOne({ email });
     if (exists) {
       return res.status(400).json({ error: 'Email already registered' });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
-    await User.create({ email, password: hashedPassword });
+    const newUser = await User.create({
+      email,
+      password: hashedPassword,
+      role: 'user'
+    });
 
-    res.status(201).json({ message: 'User registered successfully' });
+    // Optional: issue login token after register
+    const token = jwt.sign(
+      { id: newUser._id, email: newUser.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.status(201).json({ message: 'User registered successfully', token });
 
   } catch (err) {
     console.error('❌ Register error:', err);
@@ -90,7 +103,8 @@ export const register = async (req, res) => {
 // ✅ Login handler
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = req.body.email?.trim().toLowerCase();
+    const { password } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
@@ -106,7 +120,6 @@ export const login = async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Generate JWT
     const token = jwt.sign(
       { id: user._id, email: user.email },
       process.env.JWT_SECRET,
