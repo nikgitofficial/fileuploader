@@ -4,7 +4,8 @@ import {
   getUserFiles,
   deleteFile,
   updateFileName,
-  getFileById 
+  getFileById,
+  downloadFile  
 } from '../controllers/fileController.js';
 
 import { verifyToken } from '../middleware/auth.js';
@@ -26,5 +27,7 @@ router.delete('/:id', verifyToken, deleteFile);
 
 // ✅ Update filename
 router.put('/:id', verifyToken, updateFileName);
+// ✅ download filename
+router.get('/download/:id', verifyToken, downloadFile);
 
 export default router;

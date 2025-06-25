@@ -140,3 +140,25 @@ export const getFileById = async (req, res) => {
     res.status(500).json({ error: 'Failed to retrieve file' });
   }
 };
+
+
+// 📥 Download File (Cloudinary)
+export const downloadFile = async (req, res) => {
+  try {
+    const file = await File.findById(req.params.id);
+    if (!file) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    if (file.userId.toString() !== req.userId) {
+      return res.status(403).json({ error: 'Unauthorized access' });
+    }
+
+    // Force download via Cloudinary by adding `fl_attachment`
+    const downloadUrl = `${file.url}?fl_attachment=${encodeURIComponent(file.filename)}`;
+    return res.redirect(downloadUrl); // this triggers a browser download
+  } catch (err) {
+    console.error('❌ Download error:', err.message);
+    res.status(500).json({ error: 'Failed to download file' });
+  }
+};

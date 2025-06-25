@@ -1,3 +1,4 @@
+// Upload.jsx
 import React, { useEffect, useState } from 'react';
 import {
   Container, Typography, Button, Box,
@@ -218,12 +219,7 @@ const Upload = () => {
                         <TableCell align="right">
                           <IconButton
                             onClick={() => {
-                              const link = document.createElement('a');
-                              link.href = `${f.url}?fl_attachment=true`;
-                              link.setAttribute('download', f.filename);
-                              document.body.appendChild(link);
-                              link.click();
-                              document.body.removeChild(link);
+                              window.open(`${import.meta.env.VITE_API_BASE_URL}/files/download/${f._id}`, '_blank');
                             }}
                             color="primary"
                             title="Download"
@@ -274,6 +270,7 @@ const Upload = () => {
           </Alert>
         </Snackbar>
 
+        {/* Edit Dialog */}
         <Dialog open={editDialog.open} onClose={() => setEditDialog({ ...editDialog, open: false })} fullWidth maxWidth="xs">
           <DialogTitle>Edit Filename</DialogTitle>
           <DialogContent>
@@ -292,6 +289,7 @@ const Upload = () => {
           </DialogActions>
         </Dialog>
 
+        {/* Delete Dialog */}
         <Dialog open={deleteDialog.open} onClose={() => setDeleteDialog({ open: false, id: '' })} fullWidth maxWidth="xs">
           <DialogTitle>Confirm Delete</DialogTitle>
           <DialogContent>
