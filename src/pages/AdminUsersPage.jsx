@@ -74,7 +74,7 @@ const AdminUsersPage = () => {
           gutterBottom
           textAlign="center"
         >
-          👤 Registered Users
+          👤 Registered Usersssss
         </Typography>
 
         <TableContainer

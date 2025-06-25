@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import {
   Container,
@@ -22,6 +23,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import axios from '../api/axios';
+
 
 const AdminFilesPage = () => {
   const [files, setFiles] = useState([]);
@@ -103,31 +105,11 @@ const AdminFilesPage = () => {
   };
 
   return (
-    <Container
-      sx={{
-        mt: 10,
-        mb: 10,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-          position: 'absolute',
-        top: '40%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: '100%',
-        maxWidth: 400,
-        p: 4,
-        boxShadow: 3,
-        borderRadius: 2,
-        backgroundColor: 'white',
-        textAlign: 'center',
-      }}
-    >
-      <Typography variant="h5" gutterBottom textAlign="center">
+    <Container maxWidth="lg" sx={{ mt: 10, mb: 6 }}>
+      <Typography variant="h4" gutterBottom textAlign="center">
         📁 All Uploaded Files
       </Typography>
 
-      {/* Filter Input */}
       <TextField
         label="Filter by filename or email"
         variant="outlined"
@@ -135,20 +117,12 @@ const AdminFilesPage = () => {
         fullWidth
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
-        sx={{ mt: 2 }}
+        sx={{ mt: 3, mb: 2 }}
       />
 
-      <TableContainer
-        component={Paper}
-        sx={{
-          mt: 2,
-          maxHeight: '60vh',
-          overflowY: 'auto',
-          width: '100%',
-        }}
-      >
-        <Table stickyHeader>
-          <TableHead sx={{ backgroundColor: '#f0f0f0' }}>
+      <TableContainer component={Paper} sx={{ maxHeight: '60vh' }}>
+        <Table stickyHeader size="small">
+          <TableHead>
             <TableRow>
               <TableCell><strong>Filename</strong></TableCell>
               <TableCell><strong>Uploader Email</strong></TableCell>
@@ -178,10 +152,13 @@ const AdminFilesPage = () => {
                     <IconButton onClick={() => handleEditOpen(file)} color="primary">
                       <EditIcon />
                     </IconButton>
-                    <IconButton onClick={() => {
-                      setDeleteTarget(file);
-                      setDeleteOpen(true);
-                    }} color="error">
+                    <IconButton
+                      onClick={() => {
+                        setDeleteTarget(file);
+                        setDeleteOpen(true);
+                      }}
+                      color="error"
+                    >
                       <DeleteIcon />
                     </IconButton>
                   </TableCell>
@@ -206,13 +183,11 @@ const AdminFilesPage = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEditOpen(false)}>Cancel</Button>
-          <Button onClick={handleEditSave} variant="contained">
-            Save
-          </Button>
+          <Button onClick={handleEditSave} variant="contained">Save</Button>
         </DialogActions>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Dialog */}
       <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)}>
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
@@ -223,17 +198,13 @@ const AdminFilesPage = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteOpen(false)}>Cancel</Button>
-          <Button
-            onClick={confirmDelete}
-            variant="contained"
-            color="error"
-          >
+          <Button onClick={confirmDelete} variant="contained" color="error">
             Delete
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar Notification */}
+      {/* Snackbar */}
       <Snackbar
         open={snackOpen}
         autoHideDuration={3000}

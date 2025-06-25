@@ -64,14 +64,16 @@ const About = () => {
         </Typography>
 
         <Typography variant="body1" paragraph>
-          This app is a full-stack web application where users can:
+        This app is a full-stack web application where users can:
         </Typography>
-
-        <Box component="ul" sx={{ textAlign: 'left', pl: 3, mb: 3 }}>
-          <li>Upload and manage files (stored in Cloudinary)</li>
-          <li>Download audio from YouTube as MP3</li>
-          <li>Use a secure login system powered by JWT</li>
-        </Box>
+          
+     <Box component="ul" sx={{ textAlign: 'left', pl: 3, mb: 3 }}>
+     <li>Upload and manage files (stored in Cloudinary)</li>
+     <li>Download audio from YouTube as MP3</li>
+     <li>Use a secure login system powered by JWT</li>
+     <li>🔐 Lockout feature after multiple failed login attempts</li>
+     <li>📩 OTP verification during user registration</li>
+     </Box>
 
         <Divider sx={{ my: 3 }} />
 
