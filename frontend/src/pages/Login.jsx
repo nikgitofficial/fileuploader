@@ -5,9 +5,12 @@ import {
   Typography,
   Box,
   Link as MuiLink,
+  IconButton,
+  InputAdornment,
   useTheme,
   useMediaQuery
 } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import axios from '../api/axios';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
@@ -20,16 +23,16 @@ const Login = () => {
   const [attemptCount, setAttemptCount] = useState(0);
   const [lockoutUntil, setLockoutUntil] = useState(null);
   const [countdown, setCountdown] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const cooldownDurations = [0, 0, 15, 15, 30]; // per attempt
+  const cooldownDurations = [0, 0, 15, 15, 30];
   const maxAttempts = 5;
-  const LOCK_DURATION_HOURS = 4; // 5th failed attempt = 4hr lock
+  const LOCK_DURATION_HOURS = 4;
 
-  // Load stored attempts + expiration
   useEffect(() => {
     const storedAttempts = parseInt(localStorage.getItem('loginAttempts')) || 0;
     const lockExpiration = localStorage.getItem('lockExpiration');
@@ -48,10 +51,8 @@ const Login = () => {
     }
   }, [navigate]);
 
-  // Countdown for temporary locks
   useEffect(() => {
     if (!lockoutUntil) return;
-
     const interval = setInterval(() => {
       const remaining = Math.floor((lockoutUntil - Date.now()) / 1000);
       if (remaining <= 0) {
@@ -93,7 +94,6 @@ const Login = () => {
       localStorage.removeItem('loginAttempts');
       localStorage.removeItem('lockExpiration');
       setAttemptCount(0);
-
       navigate(user?.role === 'admin' ? '/admin' : '/');
     } catch (err) {
       const newCount = attemptCount + 1;
@@ -151,10 +151,23 @@ const Login = () => {
         <TextField
           label="Password"
           name="password"
-          type="password"
+          type={showPassword ? 'text' : 'password'}
           fullWidth
           margin="normal"
           onChange={handleChange}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  aria-label="toggle password visibility"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  edge="end"
+                >
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            )
+          }}
         />
 
         {error && (

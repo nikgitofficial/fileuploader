@@ -1,20 +1,14 @@
+
+
 const isStrongPassword = (password) => {
-  return (
-    password.length >= 8 &&
-    /[A-Z]/.test(password) &&
-    /[a-z]/.test(password) &&
-    /\d/.test(password) &&
-    /[!@#$%^&*(),.?":{}|<>]/.test(password)
-  );
+  return password.length > 6 && /[!@#$%^&*(),.?":{}|<>]/.test(password);
 };
 
 export const register = async (req, res) => {
   const { email, password } = req.body;
 
   if (!isStrongPassword(password)) {
-    return res.status(400).json({
-      message: "Password must be at least 8 characters and include uppercase, lowercase, number, and special character (!@#$ etc)"
-    });
+    return res.status(400).json({ message: "Password must be >6 chars and include special characters (!@#$ etc)" });
   }
 
   // continue registration...

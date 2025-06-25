@@ -1,3 +1,13 @@
-app-name 
+app-name for gmail
 username:nikkopacenio@gmail.com
 app-password:pkab mfhm rxrf zmhv
+
+
+--this Button server as in Clear duration when user exceed the multiple login required---
+<Button
+            variant="outlined"
+            color="secondary"
+            onClick={resetLock}
+          >
+            Clear Lock (Dev)
+</Button>
