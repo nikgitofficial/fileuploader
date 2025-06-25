@@ -14,6 +14,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminFilesPage from './pages/AdminFilesPage';
 import AdminUsersPage from './pages/AdminUsersPage';
 import Preview from './pages/Preview';
+import Locked from './pages/Locked';
 function App() {
   return (
     <AuthProvider>
@@ -34,6 +35,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/preview/:id" element={<Preview />} />
+              <Route path="/locked" element={<Locked />} />
              
             </Routes>
           </Box>

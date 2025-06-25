@@ -25,7 +25,8 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import axios from '../api/axios';
-import { Link, useNavigate } from 'react-router-dom';
+
+
 
 const AdminFilesPage = () => {
   const [files, setFiles] = useState([]);
@@ -135,7 +136,6 @@ const AdminFilesPage = () => {
           📁 All Uploaded Files
         </Typography>
 
-        {/* Added button to navigate back to Admin Dashboard */}
         <Button
           variant="contained"
           color="primary"
