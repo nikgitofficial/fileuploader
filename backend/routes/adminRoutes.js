@@ -22,4 +22,6 @@ router.put('/files/:id', verifyToken, isAdmin, updateFile);
 // Delete a file
 router.delete('/files/:id', verifyToken, isAdmin, deleteFile);
 
+
+
 export default router;

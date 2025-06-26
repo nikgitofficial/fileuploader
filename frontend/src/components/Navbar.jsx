@@ -39,7 +39,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/login',{ state: { logoutSuccess: true } });
   };
 
   const handleMenuClick = (event) => {

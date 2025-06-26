@@ -1,20 +1,12 @@
-// Login.jsx
-import { useState, useContext, useEffect } from 'react';
+  import { useState, useContext, useEffect } from 'react';
 import {
-  TextField,
-  Button,
-  Typography,
-  Box,
-  Link as MuiLink,
-  IconButton,
-  InputAdornment,
-  useTheme,
-  useMediaQuery
+  TextField, Button, Typography, Box, Link as MuiLink, IconButton,
+  InputAdornment, useTheme, useMediaQuery, Snackbar, Alert
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import axios from '../api/axios';
 import { AuthContext } from '../context/AuthContext';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useNavigate, Link as RouterLink, useLocation } from 'react-router-dom';
 
 const Login = () => {
   const { login } = useContext(AuthContext);
@@ -25,14 +17,27 @@ const Login = () => {
   const [lockoutUntil, setLockoutUntil] = useState(null);
   const [countdown, setCountdown] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
+  const navigate = useNavigate();
+  const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const cooldownDurations = [0, 0, 15, 15, 30];
   const maxAttempts = 5;
   const LOCK_DURATION_HOURS = 4;
+
+  // Show logout success message if redirected from logout
+  useEffect(() => {
+    if (location.state?.logoutSuccess) {
+      setSnackbarMessage('Successfully logged out');
+      setSnackbarOpen(true);
+          
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     const storedAttempts = parseInt(localStorage.getItem('loginAttempts')) || 0;
@@ -94,7 +99,11 @@ const Login = () => {
       localStorage.removeItem('loginAttempts');
       localStorage.removeItem('lockExpiration');
       setAttemptCount(0);
-      navigate(user?.role === 'admin' ? '/admin' : '/');
+      setSnackbarMessage('Login successful');
+      setSnackbarOpen(true);
+      setTimeout(() => {
+        navigate(user?.role === 'admin' ? '/admin' : '/');
+      }, 1000); // Short delay to show message
     } catch (err) {
       const newCount = attemptCount + 1;
       setAttemptCount(newCount);
@@ -212,6 +221,18 @@ const Login = () => {
           </MuiLink>
         </Typography>
       </Box>
+
+      {/* ✅ Snackbar for login/logout message */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

@@ -106,7 +106,7 @@ const Register = () => {
         if (err.response?.status === 409) {
           setEmailTaken(true);
           setEmailValid(false);
-          setError('User already exists');
+          setError('please use another email');
         } else {
           setEmailTaken(false);
           setEmailValid(false);

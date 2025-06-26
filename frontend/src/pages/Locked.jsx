@@ -68,7 +68,7 @@ const Locked = () => {
         }}
       >
         <Typography variant="h4" color="error" gutterBottom>
-          🚫 Locked Out
+          🚫You are temporarily locked out
         </Typography>
         <Typography variant="body1" gutterBottom>
           You have exceeded the maximum number of login attempts.
