@@ -185,3 +185,16 @@ export const verifyResetOtp = async (req, res) => {
 
   res.status(200).json({ otpToken });
 };
+
+// ✅ Check if email is already registered
+export const checkEmailExists = async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email is required' });
+
+  const exists = await User.findOne({ email: email.toLowerCase().trim() });
+  if (exists) {
+    return res.status(409).json({ error: 'Email already registered' });
+  }
+
+  res.status(200).json({ available: true });
+};

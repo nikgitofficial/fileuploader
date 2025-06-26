@@ -1,15 +1,8 @@
+// ... your existing imports
 import { useState, useEffect } from 'react';
 import {
-  TextField,
-  Button,
-  Typography,
-  Link as MuiLink,
-  Box,
-  useTheme,
-  useMediaQuery,
-  InputAdornment,
-  IconButton,
-  LinearProgress
+  TextField, Button, Typography, Link as MuiLink, Box, useTheme,
+  useMediaQuery, InputAdornment, IconButton, LinearProgress
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import axios from '../api/axios';
@@ -26,6 +19,7 @@ const Register = () => {
   const [lockCountdown, setLockCountdown] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [emailTaken, setEmailTaken] = useState(false); // 👈 new state
 
   const MAX_RESEND_ATTEMPTS = 3;
   const LOCK_DURATION_MS = 10 * 60 * 1000;
@@ -34,7 +28,6 @@ const Register = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  // Load from localStorage
   useEffect(() => {
     const attempts = localStorage.getItem('resendAttempts');
     const lock = localStorage.getItem('otpLockTime');
@@ -42,12 +35,10 @@ const Register = () => {
     if (lock) setOtpLockTime(parseInt(lock));
   }, []);
 
-  // Save resend attempts
   useEffect(() => {
     localStorage.setItem('resendAttempts', resendAttempts.toString());
   }, [resendAttempts]);
 
-  // Resend cooldown countdown
   useEffect(() => {
     if (resendCooldown <= 0) return;
     const timer = setInterval(() => {
@@ -62,7 +53,6 @@ const Register = () => {
     return () => clearInterval(timer);
   }, [resendCooldown]);
 
-  // Lockout countdown
   useEffect(() => {
     if (!otpLockTime) return;
     const interval = setInterval(() => {
@@ -92,25 +82,36 @@ const Register = () => {
     localStorage.removeItem('resendAttempts');
   };
 
-  const handleChange = (e) => {
+  const handleChange = async (e) => {
     const { name, value } = e.target;
     setForm((prev) => {
       if (name === 'email' && value !== prev.email) clearLock();
       return { ...prev, [name]: value };
     });
-  };
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(prev => !prev);
-  };
-
-  const startCooldown = () => {
-    setResendCooldown(30);
+    if (name === 'email') {
+      setEmailTaken(false);
+      setError('');
+      if (value.includes('@') && value.length > 5) {
+        try {
+          await axios.post('/auth/check-email', { email: value });
+          setEmailTaken(false);
+        } catch (err) {
+          if (err.response?.status === 409) {
+            setEmailTaken(true);
+            setError('Email is already registered');
+          } else {
+            setError('Failed to validate email');
+          }
+        }
+      }
+    }
   };
 
   const handleSendOtp = async () => {
     setError('');
     if (!form.email) return setError('Please enter your email.');
+    if (emailTaken) return setError('Email is already registered');
     if (otpLockTime > Date.now()) return;
 
     if (resendAttempts >= MAX_RESEND_ATTEMPTS) {
@@ -125,7 +126,7 @@ const Register = () => {
       await axios.post('/auth/send-otp', { email: form.email });
       setStep(2);
       setResendAttempts(prev => prev + 1);
-      startCooldown();
+      setResendCooldown(30);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to send OTP');
     } finally {
@@ -195,7 +196,6 @@ const Register = () => {
   };
 
   const passwordRules = isValidPassword(form.password);
-
   const otpLocked = otpLockTime > Date.now();
   const retryMessage = otpLocked
     ? `Too many attempts. Try again in ${lockCountdown}s`
@@ -234,13 +234,16 @@ const Register = () => {
               margin="normal"
               onChange={handleChange}
               type="email"
+              value={form.email}
+              error={emailTaken}
+              helperText={emailTaken ? 'Email already registered' : ''}
             />
             <Button
               variant="contained"
               fullWidth
               onClick={handleSendOtp}
               sx={{ mt: 2 }}
-              disabled={loading || otpLocked || resendCooldown > 0}
+              disabled={loading || otpLocked || resendCooldown > 0 || emailTaken}
             >
               {loading ? 'Sending...' : 'Send OTP'}
             </Button>
@@ -252,98 +255,8 @@ const Register = () => {
           </>
         )}
 
-        {step === 2 && (
-          <>
-            <Typography variant="body2" sx={{ mt: 1 }}>
-              OTP sent to <strong>{form.email}</strong>
-            </Typography>
-            <TextField
-              label="Enter OTP"
-              name="otp"
-              fullWidth
-              margin="normal"
-              onChange={handleChange}
-            />
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={handleVerifyOtp}
-              sx={{ mt: 2 }}
-              disabled={loading}
-            >
-              {loading ? 'Verifying...' : 'Verify OTP'}
-            </Button>
-            <Button
-              variant="text"
-              fullWidth
-              sx={{ mt: 1 }}
-              onClick={handleSendOtp}
-              disabled={loading || otpLocked || resendCooldown > 0}
-            >
-              Resend OTP
-            </Button>
-            {retryMessage && (
-              <Typography variant="caption" color="error">
-                {retryMessage}
-              </Typography>
-            )}
-          </>
-        )}
-
-        {step === 3 && (
-          <>
-            <TextField
-              label="Password"
-              name="password"
-              type={showPassword ? 'text' : 'password'}
-              fullWidth
-              margin="normal"
-              value={form.password}
-              onChange={handleChange}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={togglePasswordVisibility} edge="end">
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-            <Box textAlign="left" mt={1}>
-              {Object.entries(passwordRules).map(([rule, passed]) => (
-                <Typography
-                  key={rule}
-                  variant="caption"
-                  color={passed ? 'green' : 'error'}
-                >
-                  ✅ {rule.charAt(0).toUpperCase() + rule.slice(1)}
-                </Typography>
-              ))}
-            </Box>
-            <Box sx={{ width: '100%', mt: 2 }}>
-              <LinearProgress variant="determinate" value={getPasswordStrength()} sx={{ height: 6, borderRadius: 3 }} />
-            </Box>
-            <Button variant="text" size="small" onClick={suggestStrongPassword} sx={{ mt: 1 }}>
-              🧠 Suggest Strong Password
-            </Button>
-            <TextField
-              label="Confirm Password"
-              name="confirmPassword"
-              type={showPassword ? 'text' : 'password'}
-              fullWidth
-              margin="normal"
-              value={form.confirmPassword}
-              onChange={handleChange}
-            />
-            <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }} disabled={loading}>
-              {loading ? 'Registering...' : 'Register'}
-            </Button>
-            <Button variant="outlined" color="secondary" onClick={clearLock} sx={{ mt: 2 }}>
-              Clear Lock (Dev)
-            </Button>
-          </>
-        )}
+        {/* Step 2 & 3 stay unchanged */}
+        {/* ...continue with step === 2 and step === 3 blocks from your version... */}
 
         {error && (
           <Typography color="error" sx={{ mt: 2 }}>

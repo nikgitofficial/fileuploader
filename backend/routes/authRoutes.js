@@ -2,7 +2,7 @@ import express from 'express';
 import {
   login,
   register,
-  resetPassword,sendResetOtp,verifyResetOtp} from '../controllers/authController.js';
+  resetPassword,sendResetOtp,verifyResetOtp,checkEmailExists} from '../controllers/authController.js';
 
 import {
   sendOtp,
@@ -23,6 +23,7 @@ router.post('/verify-otp', verifyOtp);
 router.post('/send-reset-otp', sendResetOtp); 
 router.post('/verify-reset-otp', verifyResetOtp);                           
 router.post('/reset-password', resetPassword);
+router.post('/check-email', checkEmailExists);
 
 // ✅ Logout (clear refresh token)
 router.post('/logout', (req, res) => {
