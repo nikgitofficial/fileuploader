@@ -19,7 +19,7 @@ export const sendOtpEmail = async (to, otp) => {
     from: process.env.OTP_EMAIL,
     to,
     subject: 'Your OTP Code',
-    html: '';
+    html: `<h2>Your OTP Code</h2><p><strong>${otp}</strong></p><p>It will expire in 10 minutes.</p>`,
   };
 
   await transporter.sendMail(mailOptions);
