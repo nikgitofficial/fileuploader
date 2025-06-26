@@ -1,26 +1,20 @@
-// backend/utils/mailer.js
-import nodemailer from 'nodemailer';
+export const sendOtpEmail = async (email, otp) => {
+  const subject = 'Your Password Reset OTP';
+  const html = `
+    <div style="font-family: Arial, sans-serif; padding: 20px;">
+      <h2>Password Reset Request</h2>
+      <p>Hello,</p>
+      <p>Use the following One-Time Password (OTP) to reset your password. It will expire in 10 minutes.</p>
+      <h3 style="color: #2c3e50;">${otp}</h3>
+      <p>If you did not request a reset, please ignore this email.</p>
+      <hr />
+      <small>This is an automated message. Do not reply.</small>
+    </div>
+  `;
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.OTP_EMAIL,
-    pass: process.env.OTP_APP_PASSWORD,
-  },
-});
-
-/**
- * Send OTP email
- * @param {string} to - recipient email
- * @param {string} otp - one-time password
- */
-export const sendOtpEmail = async (to, otp) => {
-  const mailOptions = {
-    from: process.env.OTP_EMAIL,
-    to,
-    subject: 'Your OTP Code',
-    html: `<h2>Your OTP Code</h2><p><strong>${otp}</strong></p><p>It will expire in 10 minutes.</p>`,
-  };
-
-  await transporter.sendMail(mailOptions);
+  await transporter.sendMail({
+    to: email,
+    subject,
+    html
+  });
 };

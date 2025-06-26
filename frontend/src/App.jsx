@@ -15,6 +15,7 @@ import AdminFilesPage from './pages/AdminFilesPage';
 import AdminUsersPage from './pages/AdminUsersPage';
 import Preview from './pages/Preview';
 import Locked from './pages/Locked';
+import ForgotPassword from './pages/ForgotPassword';
 function App() {
   return (
     <AuthProvider>
@@ -36,6 +37,7 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/preview/:id" element={<Preview />} />
               <Route path="/locked" element={<Locked />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
              
             </Routes>
           </Box>

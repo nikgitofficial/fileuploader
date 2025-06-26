@@ -1,3 +1,4 @@
+// Login.jsx
 import { useState, useContext, useEffect } from 'react';
 import {
   TextField,
@@ -63,7 +64,6 @@ const Login = () => {
         setCountdown(remaining);
       }
     }, 1000);
-
     return () => clearInterval(interval);
   }, [lockoutUntil]);
 
@@ -148,6 +148,7 @@ const Login = () => {
           margin="normal"
           onChange={handleChange}
         />
+
         <TextField
           label="Password"
           name="password"
@@ -169,6 +170,12 @@ const Login = () => {
             )
           }}
         />
+
+        <Box sx={{ textAlign: 'right', mt: 1 }}>
+          <MuiLink component={RouterLink} to="/forgot-password" variant="body2">
+            Forgot password?
+          </MuiLink>
+        </Box>
 
         {error && (
           <Typography color="error" sx={{ mt: 1 }}>
