@@ -96,3 +96,64 @@ export const login = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
+// 1. Send OTP to email
+export const sendResetOtp = async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email is required' });
+
+  const user = await User.findOne({ email });
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  // Save OTP
+  await OtpToken.findOneAndUpdate(
+    { email },
+    { otp, createdAt: new Date() },
+    { upsert: true, new: true }
+  );
+
+  await sendOtpEmail(email, otp);
+
+  res.json({ message: 'OTP sent to your email' });
+};
+
+// 2. Verify OTP and return JWT token
+export const verifyResetOtp = async (req, res) => {
+  const { email, otp } = req.body;
+  const record = await OtpToken.findOne({ email });
+
+  if (!record || record.otp !== otp) {
+    return res.status(400).json({ error: 'Invalid or expired OTP' });
+  }
+
+  const otpToken = jwt.sign({ email }, OTP_SECRET, { expiresIn: '10m' });
+
+  res.json({ message: 'OTP verified', otpToken });
+};
+
+// 3. Reset password using verified OTP token
+export const resetPassword = async (req, res) => {
+  const { email, password, otpToken } = req.body;
+  try {
+    const decoded = jwt.verify(otpToken, OTP_SECRET);
+    if (decoded.email !== email) {
+      return res.status(403).json({ error: 'Invalid token' });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const hashed = await bcrypt.hash(password, 10);
+    user.password = hashed;
+    await user.save();
+
+    // Clean up OTP after successful reset
+    await OtpToken.deleteOne({ email });
+
+    res.json({ message: 'Password reset successful' });
+  } catch (err) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+};

@@ -1,6 +1,6 @@
 import express from 'express';
 import { login, register } from '../controllers/authController.js';
-import { sendOtp, verifyOtp } from '../controllers/otpController.js';
+import { sendOtp, verifyOtp, sendResetOtp,verifyResetOtp,resetPassword } from '../controllers/otpController.js';
 const router = express.Router();
 
 // POST /api/auth/register
@@ -11,6 +11,9 @@ router.post('/login', login);
 
 router.post('/send-otp', sendOtp);
 router.post('/verify-otp', verifyOtp);
+router.post('/send-reset-otp', sendResetOtp);
+router.post('/verify-reset-otp', verifyResetOtp);
+router.post('/reset-password', resetPassword);
 
 
 
