@@ -1,4 +1,3 @@
-// ... your existing imports
 import { useState, useEffect } from 'react';
 import {
   TextField, Button, Typography, Link as MuiLink, Box, useTheme,
@@ -19,7 +18,8 @@ const Register = () => {
   const [lockCountdown, setLockCountdown] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [emailTaken, setEmailTaken] = useState(false); // 👈 new state
+  const [emailTaken, setEmailTaken] = useState(false);
+  const [emailValid, setEmailValid] = useState(false);
 
   const MAX_RESEND_ATTEMPTS = 3;
   const LOCK_DURATION_MS = 10 * 60 * 1000;
@@ -28,6 +28,7 @@ const Register = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+  // Load lock state from localStorage
   useEffect(() => {
     const attempts = localStorage.getItem('resendAttempts');
     const lock = localStorage.getItem('otpLockTime');
@@ -42,13 +43,7 @@ const Register = () => {
   useEffect(() => {
     if (resendCooldown <= 0) return;
     const timer = setInterval(() => {
-      setResendCooldown(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
-      });
+      setResendCooldown(prev => (prev <= 1 ? (clearInterval(timer), 0) : prev - 1));
     }, 1000);
     return () => clearInterval(timer);
   }, [resendCooldown]);
@@ -78,40 +73,80 @@ const Register = () => {
     setOtpLockTime(0);
     setLockCountdown(0);
     setError('');
+    setEmailTaken(false);
+    setEmailValid(false);
     localStorage.removeItem('otpLockTime');
     localStorage.removeItem('resendAttempts');
   };
 
-  const handleChange = async (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => {
-      if (name === 'email' && value !== prev.email) clearLock();
-      return { ...prev, [name]: value };
-    });
-
-    if (name === 'email') {
+  // Debounced email validation and availability check
+  useEffect(() => {
+    if (!form.email) {
       setEmailTaken(false);
+      setEmailValid(false);
       setError('');
-      if (value.includes('@') && value.length > 5) {
-        try {
-          await axios.post('/auth/check-email', { email: value });
+      return;
+    }
+    const trimmed = form.email.trim().toLowerCase();
+    const validFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+    if (!validFormat) {
+      setEmailTaken(false);
+      setEmailValid(false);
+      setError('');
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(async () => {
+      try {
+        await axios.post('/auth/check-email', { email: trimmed });
+        setEmailTaken(false);
+        setEmailValid(true);
+        setError('');
+      } catch (err) {
+        if (err.response?.status === 409) {
+          setEmailTaken(true);
+          setEmailValid(false);
+          setError('User already exists');
+        } else {
           setEmailTaken(false);
-        } catch (err) {
-          if (err.response?.status === 409) {
-            setEmailTaken(true);
-            setError('Email is already registered');
-          } else {
-            setError('Failed to validate email');
-          }
+          setEmailValid(false);
+          setError('Failed to validate email');
         }
       }
-    }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [form.email]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+    if (name === 'email') clearLock();
   };
 
+  // Important: Re-check email availability before sending OTP to avoid race conditions
   const handleSendOtp = async () => {
     setError('');
-    if (!form.email) return setError('Please enter your email.');
-    if (emailTaken) return setError('Email is already registered');
+    const trimmedEmail = form.email.trim().toLowerCase();
+    if (!trimmedEmail) return setError('Please enter your email.');
+
+    // Final server-side email check before sending OTP
+    try {
+      await axios.post('/auth/check-email', { email: trimmedEmail });
+      setEmailTaken(false);
+      setEmailValid(true);
+    } catch (err) {
+      if (err.response?.status === 409) {
+        setEmailTaken(true);
+        setEmailValid(false);
+        setError('Email is already registered');
+        return; // block sending OTP
+      } else {
+        setError('Failed to validate email');
+        return;
+      }
+    }
+
     if (otpLockTime > Date.now()) return;
 
     if (resendAttempts >= MAX_RESEND_ATTEMPTS) {
@@ -123,7 +158,7 @@ const Register = () => {
 
     try {
       setLoading(true);
-      await axios.post('/auth/send-otp', { email: form.email });
+      await axios.post('/auth/send-otp', { email: trimmedEmail });
       setStep(2);
       setResendAttempts(prev => prev + 1);
       setResendCooldown(30);
@@ -139,7 +174,7 @@ const Register = () => {
     try {
       setLoading(true);
       const res = await axios.post('/auth/verify-otp', {
-        email: form.email,
+        email: form.email.trim().toLowerCase(),
         otp: form.otp
       });
       setOtpToken(res.data.otpToken);
@@ -173,17 +208,13 @@ const Register = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
-    if (!form.password || !form.confirmPassword) {
-      return setError('Please enter and confirm your password.');
-    }
-    if (form.password !== form.confirmPassword) {
-      return setError('Passwords do not match.');
-    }
+    if (!form.password || !form.confirmPassword) return setError('Please enter and confirm your password.');
+    if (form.password !== form.confirmPassword) return setError('Passwords do not match.');
 
     try {
       setLoading(true);
       await axios.post('/auth/register', {
-        email: form.email,
+        email: form.email.trim().toLowerCase(),
         password: form.password,
         otpToken
       });
@@ -236,7 +267,15 @@ const Register = () => {
               type="email"
               value={form.email}
               error={emailTaken}
-              helperText={emailTaken ? 'Email already registered' : ''}
+              helperText={emailTaken ? 'User already exists' : ''}
+              InputProps={{
+                endAdornment:
+                  emailValid && !emailTaken ? (
+                    <InputAdornment position="end">
+                      <Typography color="green" fontWeight={600}>✅</Typography>
+                    </InputAdornment>
+                  ) : null,
+              }}
             />
             <Button
               variant="contained"
@@ -255,8 +294,94 @@ const Register = () => {
           </>
         )}
 
-        {/* Step 2 & 3 stay unchanged */}
-        {/* ...continue with step === 2 and step === 3 blocks from your version... */}
+        {step === 2 && (
+          <>
+            <Typography variant="body2" sx={{ mt: 1 }}>
+              OTP sent to <strong>{form.email}</strong>
+            </Typography>
+            <TextField
+              label="Enter OTP"
+              name="otp"
+              fullWidth
+              margin="normal"
+              onChange={handleChange}
+            />
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={handleVerifyOtp}
+              sx={{ mt: 2 }}
+              disabled={loading}
+            >
+              {loading ? 'Verifying...' : 'Verify OTP'}
+            </Button>
+            <Button
+              variant="text"
+              fullWidth
+              sx={{ mt: 1 }}
+              onClick={handleSendOtp}
+              disabled={loading || otpLocked || resendCooldown > 0}
+            >
+              Resend OTP
+            </Button>
+            {retryMessage && (
+              <Typography variant="caption" color="error">
+                {retryMessage}
+              </Typography>
+            )}
+          </>
+        )}
+
+        {step === 3 && (
+          <>
+            <TextField
+              label="Password"
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              fullWidth
+              margin="normal"
+              value={form.password}
+              onChange={handleChange}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowPassword(prev => !prev)} edge="end">
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <Box textAlign="left" mt={1}>
+              {Object.entries(passwordRules).map(([rule, passed]) => (
+                <Typography key={rule} variant="caption" color={passed ? 'green' : 'error'}>
+                  ✅ {rule.charAt(0).toUpperCase() + rule.slice(1)}
+                </Typography>
+              ))}
+            </Box>
+            <Box sx={{ width: '100%', mt: 2 }}>
+              <LinearProgress variant="determinate" value={getPasswordStrength()} sx={{ height: 6, borderRadius: 3 }} />
+            </Box>
+            <Button variant="text" size="small" onClick={suggestStrongPassword} sx={{ mt: 1 }}>
+              🧠 Suggest Strong Password
+            </Button>
+            <TextField
+              label="Confirm Password"
+              name="confirmPassword"
+              type={showPassword ? 'text' : 'password'}
+              fullWidth
+              margin="normal"
+              value={form.confirmPassword}
+              onChange={handleChange}
+            />
+            <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }} disabled={loading}>
+              {loading ? 'Registering...' : 'Register'}
+            </Button>
+            <Button variant="outlined" color="secondary" onClick={clearLock} sx={{ mt: 2 }}>
+              Clear Lock (Dev)
+            </Button>
+          </>
+        )}
 
         {error && (
           <Typography color="error" sx={{ mt: 2 }}>
