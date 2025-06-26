@@ -2,8 +2,7 @@ import express from 'express';
 import {
   login,
   register,
-  resetPassword // ✅ Add this from authController OR otpController
-} from '../controllers/authController.js';
+  resetPassword,sendResetOtp,verifyResetOtp} from '../controllers/authController.js';
 
 import {
   sendOtp,
@@ -21,6 +20,8 @@ router.post('/send-otp', sendOtp);
 router.post('/verify-otp', verifyOtp);
 
 // ✅ Password reset using verified OTP token
+router.post('/send-reset-otp', sendResetOtp); 
+router.post('/verify-reset-otp', verifyResetOtp);                           
 router.post('/reset-password', resetPassword);
 
 // ✅ Logout (clear refresh token)
