@@ -1,22 +1,29 @@
 import express from 'express';
-import { login, register } from '../controllers/authController.js';
-import { sendOtp, verifyOtp, sendResetOtp,verifyResetOtp,resetPassword } from '../controllers/otpController.js';
+import {
+  login,
+  register,
+  resetPassword // ✅ Add this from authController OR otpController
+} from '../controllers/authController.js';
+
+import {
+  sendOtp,
+  verifyOtp
+} from '../controllers/otpController.js';
+
 const router = express.Router();
 
-// POST /api/auth/register
+// ✅ Registration and login
 router.post('/register', register);
-
-// POST /api/auth/login
 router.post('/login', login);
 
+// ✅ OTP for registration & password reset
 router.post('/send-otp', sendOtp);
 router.post('/verify-otp', verifyOtp);
-router.post('/send-reset-otp', sendResetOtp);
-router.post('/verify-reset-otp', verifyResetOtp);
+
+// ✅ Password reset using verified OTP token
 router.post('/reset-password', resetPassword);
 
-
-
+// ✅ Logout (clear refresh token)
 router.post('/logout', (req, res) => {
   res.clearCookie('refreshToken', {
     httpOnly: true,

@@ -1,8 +1,10 @@
 import User from '../models/User.js';
+import OtpToken from '../models/Otp.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 const OTP_SECRET = process.env.OTP_SECRET || 'otp_secret_key';
+const JWT_SECRET = process.env.JWT_SECRET || 'jwt_secret_key';
 
 // ✅ Register with OTP token verification
 export const register = async (req, res) => {
@@ -44,7 +46,7 @@ export const register = async (req, res) => {
     // ✅ Issue login token
     const token = jwt.sign(
       { id: newUser._id, email: newUser.email },
-      process.env.JWT_SECRET,
+      JWT_SECRET,
       { expiresIn: '7d' }
     );
 
@@ -78,7 +80,7 @@ export const login = async (req, res) => {
 
     const token = jwt.sign(
       { id: user._id, email: user.email },
-      process.env.JWT_SECRET,
+      JWT_SECRET,
       { expiresIn: '7d' }
     );
 
@@ -97,43 +99,7 @@ export const login = async (req, res) => {
   }
 };
 
-// 1. Send OTP to email
-export const sendResetOtp = async (req, res) => {
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ error: 'Email is required' });
-
-  const user = await User.findOne({ email });
-  if (!user) return res.status(404).json({ error: 'User not found' });
-
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-  // Save OTP
-  await OtpToken.findOneAndUpdate(
-    { email },
-    { otp, createdAt: new Date() },
-    { upsert: true, new: true }
-  );
-
-  await sendOtpEmail(email, otp);
-
-  res.json({ message: 'OTP sent to your email' });
-};
-
-// 2. Verify OTP and return JWT token
-export const verifyResetOtp = async (req, res) => {
-  const { email, otp } = req.body;
-  const record = await OtpToken.findOne({ email });
-
-  if (!record || record.otp !== otp) {
-    return res.status(400).json({ error: 'Invalid or expired OTP' });
-  }
-
-  const otpToken = jwt.sign({ email }, OTP_SECRET, { expiresIn: '10m' });
-
-  res.json({ message: 'OTP verified', otpToken });
-};
-
-// 3. Reset password using verified OTP token
+// ✅ Reset password using verified OTP token
 export const resetPassword = async (req, res) => {
   const { email, password, otpToken } = req.body;
   try {
@@ -149,11 +115,10 @@ export const resetPassword = async (req, res) => {
     user.password = hashed;
     await user.save();
 
-    // Clean up OTP after successful reset
     await OtpToken.deleteOne({ email });
 
     res.json({ message: 'Password reset successful' });
   } catch (err) {
-    return res.status(401).json({ error: 'Invalid or expired token' });
+    res.status(401).json({ error: 'Invalid or expired token' });
   }
 };
