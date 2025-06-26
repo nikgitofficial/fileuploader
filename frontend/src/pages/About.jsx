@@ -73,6 +73,7 @@ const About = () => {
      <li>Use a secure login system powered by JWT</li>
      <li>🔐 Lockout feature after multiple failed login attempts</li>
      <li>📩 OTP verification during user registration</li>
+     <li>🔄 Password reset functionality via email OTP</li>
      </Box>
 
         <Divider sx={{ my: 3 }} />
