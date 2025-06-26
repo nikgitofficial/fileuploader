@@ -1,4 +1,3 @@
-// ForgotPassword.jsx
 import { useState } from 'react';
 import {
   Box,
@@ -35,7 +34,7 @@ const ForgotPassword = () => {
     if (!form.email) return setError('Please enter your email');
     try {
       setLoading(true);
-      await axios.post('/auth/send-reset-otp', { email: form.email });
+      await axios.post('/auth/send-otp', { email: form.email }); // ✅ updated route
       setStep(2);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to send OTP');
@@ -48,7 +47,7 @@ const ForgotPassword = () => {
     setError('');
     try {
       setLoading(true);
-      const res = await axios.post('/auth/verify-reset-otp', {
+      const res = await axios.post('/auth/verify-otp', { // ✅ updated route
         email: form.email,
         otp: form.otp
       });
