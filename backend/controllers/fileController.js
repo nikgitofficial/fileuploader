@@ -3,7 +3,7 @@ import File from '../models/File.js';
 import { Readable } from 'stream';
 import mongoose from 'mongoose';
 
-// 📤 Upload File Controller
+// 📤 Upload File Controller (UPDATED)
 export const uploadFile = async (req, res) => {
   try {
     if (!req.file) {
@@ -17,7 +17,7 @@ export const uploadFile = async (req, res) => {
       return readable;
     };
 
-    // Dynamically determine resource type
+    // Determine Cloudinary resource type
     let resourceType = 'raw';
     if (req.file.mimetype.startsWith('image/')) {
       resourceType = 'image';
@@ -27,6 +27,9 @@ export const uploadFile = async (req, res) => {
       {
         resource_type: resourceType,
         folder: 'uploads',
+        use_filename: true,
+        unique_filename: false,
+        filename_override: req.file.originalname,
       },
       async (error, result) => {
         if (error) {
@@ -153,17 +156,17 @@ export const downloadFile = async (req, res) => {
 
     const resourceType = file.type.startsWith('image/') ? 'image' : 'raw';
 
-  const signedUrl = cloudinary.utils.private_download_url(
-  file.public_id,
-  null, // extension
-  {
-    type: 'upload',
-    resource_type: resourceType,
-    attachment: true,
-    expires_at: Math.floor(Date.now() / 1000) + 60,
-    filename_override: file.filename,
-  }
-);
+    const signedUrl = cloudinary.utils.private_download_url(
+      file.public_id,
+      null,
+      {
+        type: 'upload',
+        resource_type: resourceType,
+        attachment: true,
+        expires_at: Math.floor(Date.now() / 1000) + 60,
+        filename_override: file.filename,
+      }
+    );
 
     return res.status(200).json({ url: signedUrl });
   } catch (err) {
