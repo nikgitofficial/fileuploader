@@ -6,6 +6,8 @@ import {
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import axios from '../api/axios';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { Snackbar, Alert } from '@mui/material';
+
 
 const Register = () => {
   const [form, setForm] = useState({ email: '', password: '', confirmPassword: '', otp: '' });
@@ -20,6 +22,9 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [emailTaken, setEmailTaken] = useState(false);
   const [emailValid, setEmailValid] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [otpVerifiedSnackbar, setOtpVerifiedSnackbar] = useState(false);
+  const [otpSentSnackbar, setOtpSentSnackbar] = useState(false);
 
   const MAX_RESEND_ATTEMPTS = 3;
   const LOCK_DURATION_MS = 10 * 60 * 1000;
@@ -162,6 +167,7 @@ const Register = () => {
       setStep(2);
       setResendAttempts(prev => prev + 1);
       setResendCooldown(30);
+      setOtpSentSnackbar(true);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to send OTP');
     } finally {
@@ -179,6 +185,7 @@ const Register = () => {
       });
       setOtpToken(res.data.otpToken);
       setStep(3);
+      setOtpVerifiedSnackbar(true);
     } catch (err) {
       setError(err.response?.data?.error || 'Invalid OTP');
     } finally {
@@ -218,7 +225,8 @@ const Register = () => {
         password: form.password,
         otpToken
       });
-      navigate('/login');
+         setSnackbarOpen(true); 
+         setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed');
     } finally {
@@ -398,6 +406,39 @@ const Register = () => {
           </MuiLink>
         </Typography>
       </Box>
+      <Snackbar
+  open={snackbarOpen}
+  autoHideDuration={2000}
+  onClose={() => setSnackbarOpen(false)}
+  anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+>
+  <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: '100%' }}>
+    Successfully registered! Redirecting to login...
+  </Alert>
+</Snackbar>
+
+<Snackbar
+  open={otpVerifiedSnackbar}
+  autoHideDuration={2000}
+  onClose={() => setOtpVerifiedSnackbar(false)}
+  anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+>
+  <Alert onClose={() => setOtpVerifiedSnackbar(false)} severity="success" sx={{ width: '100%' }}>
+    ✅ OTP Verified! You can now set your password.
+  </Alert>
+</Snackbar>
+
+<Snackbar
+  open={otpSentSnackbar}
+  autoHideDuration={2000}
+  onClose={() => setOtpSentSnackbar(false)}
+  anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+>
+  <Alert onClose={() => setOtpSentSnackbar(false)} severity="info" sx={{ width: '100%' }}>
+    📧 OTP sent! Please check your email.
+  </Alert>
+</Snackbar>
+
     </Box>
   );
 };

@@ -5,7 +5,8 @@ import {
   deleteFile,
   updateFileName,
   getFileById,
-  downloadFile  
+  downloadFile
+  
 } from '../controllers/fileController.js';
 
 import { verifyToken } from '../middleware/auth.js';
