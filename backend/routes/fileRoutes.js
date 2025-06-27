@@ -18,7 +18,7 @@ const router = express.Router();
 router.post('/upload', verifyToken, upload.single('file'), uploadFile);
 
 // ✅ Download file — must be BEFORE '/:id'
-router.get('/download/:id', downloadFile); // ← Optional: remove verifyToken for public download
+router.get('/download/:id',verifyToken, downloadFile); // ← Optional: remove verifyToken for public download
 
 // ✅ List user's files
 router.get('/', verifyToken, getUserFiles);
