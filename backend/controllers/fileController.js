@@ -3,7 +3,7 @@ import File from '../models/File.js';
 import { Readable } from 'stream';
 import mongoose from 'mongoose';
 
-// 📤 Upload File Controller (UPDATED)
+// 📤 Upload File Controller (FINALIZED)
 export const uploadFile = async (req, res) => {
   try {
     if (!req.file) {
@@ -17,6 +17,9 @@ export const uploadFile = async (req, res) => {
       return readable;
     };
 
+    const originalName = req.file.originalname;
+    const extension = originalName.split('.').pop(); // e.g., 'pdf'
+
     // Determine Cloudinary resource type
     let resourceType = 'raw';
     if (req.file.mimetype.startsWith('image/')) {
@@ -29,7 +32,8 @@ export const uploadFile = async (req, res) => {
         folder: 'uploads',
         use_filename: true,
         unique_filename: false,
-        filename_override: req.file.originalname,
+        filename_override: originalName,
+        format: extension, // critical to make preview work
       },
       async (error, result) => {
         if (error) {
@@ -38,7 +42,7 @@ export const uploadFile = async (req, res) => {
         }
 
         const file = await File.create({
-          filename: req.file.originalname,
+          filename: originalName,
           url: result.secure_url,
           public_id: result.public_id,
           type: req.file.mimetype,

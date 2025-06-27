@@ -27,7 +27,16 @@ const Preview = () => {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
         });
-        setFile(res.data);
+
+        const fetchedFile = res.data;
+        const ext = fetchedFile.filename?.split('.').pop();
+
+        // ✅ Append extension for preview (Cloudinary lacks it by default)
+        if (ext && !fetchedFile.url.endsWith(`.${ext}`)) {
+          fetchedFile.url += `.${ext}`;
+        }
+
+        setFile(fetchedFile);
       } catch (err) {
         console.error('❌ Error fetching file:', err);
       } finally {
@@ -37,22 +46,23 @@ const Preview = () => {
     fetchFile();
   }, [id]);
 
- const handleSecureDownload = async () => {
-  try {
-    const response = await axios.get(
-      `${import.meta.env.VITE_API_URL}/api/files/download/${file._id}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true,
-      }
-    );
+  const handleSecureDownload = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/files/download/${file._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
+      );
 
-    const { url } = response.data;
-    window.open(url, '_blank'); // open in new tab
-  } catch (err) {
-    console.error('❌ Secure download failed:', err);
-  }
-};
+      const { url } = response.data;
+      window.open(url, '_blank'); // open in new tab
+    } catch (err) {
+      console.error('❌ Secure download failed:', err);
+    }
+  };
+
   if (loading) {
     return (
       <Box
@@ -67,7 +77,7 @@ const Preview = () => {
         <CircularProgress />
       </Box>
     );
-  } // ✅ This closing brace was missing
+  }
 
   if (!file) {
     return (
@@ -153,7 +163,7 @@ const Preview = () => {
                   onClick={handleSecureDownload}
                   disabled={loading || !file}
                   fullWidth={isMobile}
-                  variant="outlined" 
+                  variant="outlined"
                 >
                   ⬇️ Secure Download
                 </Button>
@@ -186,7 +196,7 @@ const Preview = () => {
             disabled={loading || !file}
             sx={{ mt: 2 }}
             fullWidth={isMobile}
-            variant="outlined" 
+            variant="outlined"
           >
             ⬇️ Secure Download
           </Button>
