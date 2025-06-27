@@ -37,33 +37,22 @@ const Preview = () => {
     fetchFile();
   }, [id]);
 
-  const handleSecureDownload = async () => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/files/download/${file._id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          responseType: 'blob',
-          withCredentials: true,
-        }
-      );
+ const handleSecureDownload = async () => {
+  try {
+    const response = await axios.get(
+      `${import.meta.env.VITE_API_URL}/api/files/download/${file._id}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      }
+    );
 
-      const blob = new Blob([response.data]);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = file.filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('❌ Secure download failed:', err);
-    }
-  };
-
+    const { url } = response.data;
+    window.open(url, '_blank'); // open in new tab
+  } catch (err) {
+    console.error('❌ Secure download failed:', err);
+  }
+};
   if (loading) {
     return (
       <Box
@@ -164,6 +153,7 @@ const Preview = () => {
                   onClick={handleSecureDownload}
                   disabled={loading || !file}
                   fullWidth={isMobile}
+                  variant="outlined" 
                 >
                   ⬇️ Secure Download
                 </Button>
@@ -196,6 +186,7 @@ const Preview = () => {
             disabled={loading || !file}
             sx={{ mt: 2 }}
             fullWidth={isMobile}
+            variant="outlined" 
           >
             ⬇️ Secure Download
           </Button>

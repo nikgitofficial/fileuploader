@@ -141,8 +141,7 @@ export const getFileById = async (req, res) => {
   }
 };
 
-
-// 📥 Download File (Cloudinary)
+// 📥 Download File (Signed URL Response)
 export const downloadFile = async (req, res) => {
   try {
     const file = await File.findById(req.params.id);
@@ -152,16 +151,18 @@ export const downloadFile = async (req, res) => {
       return res.status(403).json({ error: 'Unauthorized access' });
     }
 
-    // Ensure proper download URL
-    const fileFormat = file.url.includes('/raw/')
-      ? 'raw'
-      : file.type.startsWith('image/') ? 'image' : 'auto';
+    const resourceType = file.type.startsWith('image/') ? 'image' : 'raw';
 
-    const downloadUrl = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/${fileFormat}/upload/fl_attachment:${encodeURIComponent(file.filename)}/${file.public_id}`;
+    const signedUrl = cloudinary.utils.download_url(file.public_id, {
+      resource_type: resourceType,
+      attachment: true, // Forces download with original filename
+      type: 'upload',
+      expires_at: Math.floor(Date.now() / 1000) + 60, // ⏱️ expires in 60 seconds
+    });
 
-    return res.redirect(downloadUrl);
+    return res.status(200).json({ url: signedUrl });
   } catch (err) {
     console.error('❌ Download error:', err.message);
-    res.status(500).json({ error: 'Failed to download file' });
+    res.status(500).json({ error: 'Failed to generate download link' });
   }
 };
