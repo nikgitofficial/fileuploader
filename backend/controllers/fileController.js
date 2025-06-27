@@ -10,21 +10,16 @@ export const uploadFile = async (req, res) => {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    const bufferToStream = (buffer) => {
+    // Turn multer buffer into a stream
+    const bufferToStream = buffer => {
       const readable = new Readable();
       readable.push(buffer);
       readable.push(null);
       return readable;
     };
 
-    const originalName = req.file.originalname;
-    const extension = originalName.split('.').pop(); // e.g., 'pdf'
-
-    // Determine Cloudinary resource type
-    let resourceType = 'raw';
-    if (req.file.mimetype.startsWith('image/')) {
-      resourceType = 'image';
-    }
+    // Use 'image' for images, otherwise let Cloudinary auto-detect type (PDF, docx, etc.)
+    const resourceType = req.file.mimetype.startsWith('image/') ? 'image' : 'auto';
 
     const stream = cloudinary.uploader.upload_stream(
       {
@@ -32,8 +27,8 @@ export const uploadFile = async (req, res) => {
         folder: 'uploads',
         use_filename: true,
         unique_filename: false,
-        filename_override: originalName,
-        format: extension, // critical to make preview work
+        filename_override: req.file.originalname,
+        // removed `format`—so Cloudinary preserves the original extension
       },
       async (error, result) => {
         if (error) {
@@ -41,8 +36,9 @@ export const uploadFile = async (req, res) => {
           return res.status(500).json({ error: 'Upload failed' });
         }
 
+        // Save the file record in Mongo
         const file = await File.create({
-          filename: originalName,
+          filename: req.file.originalname,
           url: result.secure_url,
           public_id: result.public_id,
           type: req.file.mimetype,
@@ -55,10 +51,14 @@ export const uploadFile = async (req, res) => {
 
     bufferToStream(req.file.buffer).pipe(stream);
   } catch (err) {
-    console.error('❌ Upload error:', err.message);
+    console.error('❌ Upload error:', err);
     res.status(500).json({ error: 'Upload failed' });
   }
 };
+
+
+   
+   
 
 // 🗑️ Delete File Controller
 export const deleteFile = async (req, res) => {

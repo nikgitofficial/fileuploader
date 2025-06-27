@@ -27,20 +27,23 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import axios from '../api/axios';
-
-
+import CircularProgress from '@mui/material/CircularProgress';
 
 const AdminFilesPage = () => {
   const [files, setFiles] = useState([]);
   const [editOpen, setEditOpen] = useState(false);
   const [currentFile, setCurrentFile] = useState(null);
   const [editedFilename, setEditedFilename] = useState('');
-  const [snackOpen, setSnackOpen] = useState(false);
-  const [snackMsg, setSnackMsg] = useState('');
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [filter, setFilter] = useState('');
   const token = localStorage.getItem('token');
+  const [loading, setLoading] = useState(false);
+  const [snack, setSnack] = useState({
+  open: false,
+  msg: '',
+  severity: 'info',
+});
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -67,51 +70,55 @@ const AdminFilesPage = () => {
     setEditedFilename(file.filename);
     setEditOpen(true);
   };
-
-  const handleEditSave = async () => {
-    try {
-      await axios.put(
-        `/admin/files/${currentFile._id}`,
-        { filename: editedFilename },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          withCredentials: true,
-        }
-      );
-      setFiles((prev) =>
-        prev.map((f) =>
-          f._id === currentFile._id ? { ...f, filename: editedFilename } : f
-        )
-      );
-      setEditOpen(false);
-      setSnackMsg('✏️ Filename updated');
-      setSnackOpen(true);
-    } catch (err) {
-      console.error('❌ Edit failed:', err);
-      setSnackMsg('❌ Failed to update filename');
-      setSnackOpen(true);
-    }
-  };
-
-  const confirmDelete = async () => {
-    try {
-      await axios.delete(`/admin/files/${deleteTarget._id}`, {
+const handleEditSave = async () => {
+  setLoading(true);
+  try {
+    await axios.put(
+      `/admin/files/${currentFile._id}`,
+      { filename: editedFilename },
+      {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
-      });
-      setFiles((prev) => prev.filter((file) => file._id !== deleteTarget._id));
-      setSnackMsg('🗑️ File deleted successfully');
-    } catch (err) {
-      console.error('❌ Delete failed:', err);
-      setSnackMsg('❌ Failed to delete file');
-    } finally {
-      setSnackOpen(true);
-      setDeleteOpen(false);
-      setDeleteTarget(null);
-    }
-  };
+      }
+    );
+    setFiles((prev) =>
+      prev.map((f) =>
+        f._id === currentFile._id ? { ...f, filename: editedFilename } : f
+      )
+    );
+    setEditOpen(false);
+    setSnack({ open: true, msg: '✅ Filename updated', severity: 'success' });
+  } catch (err) {
+    console.error('❌ Edit failed:', err);
+    setSnack({ open: true, msg: '❌ Failed to update filename', severity: 'error' });
+  } finally {
+    setLoading(false);
+  }
+};
 
-  return (
+const confirmDelete = async () => {
+  setLoading(true);
+  try {
+    await axios.delete(`/admin/files/${deleteTarget._id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      withCredentials: true,
+    });
+    setFiles((prev) => prev.filter((file) => file._id !== deleteTarget._id));
+    setSnack({ open: true, msg: '🗑️ File deleted successfully', severity: 'success' });
+  } catch (err) {
+    console.error('❌ Delete failed:', err);
+    setSnack({ open: true, msg: '❌ Failed to delete file', severity: 'error' });
+  } finally {
+    setLoading(false);
+    setDeleteOpen(false);
+    setDeleteTarget(null);
+  }
+};
+
+   
+
+
+return (
     <Box
       sx={{
         minHeight: '100vh',
@@ -237,10 +244,10 @@ const AdminFilesPage = () => {
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setEditOpen(false)}>Cancel</Button>
-            <Button onClick={handleEditSave} variant="contained">
-              Save
-            </Button>
+            <Button onClick={() => setEditOpen(false)} disabled={loading}>Cancel</Button>
+          <Button onClick={handleEditSave} variant="contained" disabled={loading}>
+          {loading ? <CircularProgress size={20} color="inherit" /> : 'Save'}
+          </Button>
           </DialogActions>
         </Dialog>
 
@@ -253,25 +260,30 @@ const AdminFilesPage = () => {
             </Typography>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setDeleteOpen(false)}>Cancel</Button>
-            <Button onClick={confirmDelete} variant="contained" color="error">
-              Delete
-            </Button>
+               <Button onClick={() => setDeleteOpen(false)} disabled={loading}>Cancel</Button>
+               <Button onClick={confirmDelete} variant="contained" color="error" disabled={loading}>
+               {loading ? <CircularProgress size={20} color="inherit" /> : 'Delete'}
+               </Button>
           </DialogActions>
         </Dialog>
 
         {/* Snackbar */}
-        <Snackbar
-          open={snackOpen}
-          autoHideDuration={3000}
-          onClose={() => setSnackOpen(false)}
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        >
-          <Alert onClose={() => setSnackOpen(false)} severity="info" sx={{ width: '100%' }}>
-            {snackMsg}
-          </Alert>
-        </Snackbar>
+       <Snackbar
+  open={snack.open}
+  autoHideDuration={3000}
+  onClose={() => setSnack({ ...snack, open: false })}
+  anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+>
+  <Alert
+    onClose={() => setSnack({ ...snack, open: false })}
+    severity={snack.severity}
+    sx={{ width: '100%' }}
+  >
+    {snack.msg}
+  </Alert>
+</Snackbar>
       </Container>
+      
     </Box>
   );
 };

@@ -28,21 +28,22 @@ const Preview = () => {
           withCredentials: true,
         });
 
-        const fetchedFile = res.data;
-        const ext = fetchedFile.filename?.split('.').pop();
+        const fetched = res.data;
+        const ext = fetched.filename?.split('.').pop()?.toLowerCase();
 
-        // ✅ Append extension for preview (Cloudinary lacks it by default)
-        if (ext && !fetchedFile.url.endsWith(`.${ext}`)) {
-          fetchedFile.url += `.${ext}`;
+        // 🔧 Force extension for Google Docs preview
+        if (ext && !fetched.url.endsWith(`.${ext}`)) {
+          fetched.url = `${fetched.url}.${ext}`;
         }
 
-        setFile(fetchedFile);
+        setFile(fetched);
       } catch (err) {
         console.error('❌ Error fetching file:', err);
       } finally {
         setLoading(false);
       }
     };
+
     fetchFile();
   }, [id]);
 
@@ -57,7 +58,7 @@ const Preview = () => {
       );
 
       const { url } = response.data;
-      window.open(url, '_blank'); // open in new tab
+      window.open(url, '_blank');
     } catch (err) {
       console.error('❌ Secure download failed:', err);
     }
@@ -95,13 +96,14 @@ const Preview = () => {
     );
   }
 
+  const ext = file.filename?.split('.').pop()?.toLowerCase();
   const isImage = file.type?.startsWith('image/');
-  const isPDF = file.type === 'application/pdf';
-  const isText = file.type?.startsWith('text/');
-  const isDocOrSheet = [
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  ].includes(file.type);
+  const isDocOrSheet = ['pdf', 'docx', 'xlsx', 'pptx'].includes(ext);
+  const useGoogleDocs = isDocOrSheet && !previewError;
+
+  const iframeSrc = useGoogleDocs
+    ? `https://docs.google.com/gview?url=${encodeURIComponent(file.url)}&embedded=true`
+    : null;
 
   const fallbackLink = (
     <Typography mt={2}>
@@ -142,65 +144,43 @@ const Preview = () => {
           {file.filename}
         </Typography>
 
-        {previewError && fallbackLink}
-
-        {!previewError && (
-          <>
-            {isImage ? (
-              <Box>
-                <img
-                  src={file.url}
-                  alt={file.filename}
-                  style={{
-                    width: '100%',
-                    maxHeight: isMobile ? '50vh' : '70vh',
-                    objectFit: 'contain',
-                    marginBottom: '16px',
-                  }}
-                  onError={() => setPreviewError(true)}
-                />
-                <Button
-                  onClick={handleSecureDownload}
-                  disabled={loading || !file}
-                  fullWidth={isMobile}
-                  variant="outlined"
-                >
-                  ⬇️ Secure Download
-                </Button>
-              </Box>
-            ) : isPDF || isText || isDocOrSheet ? (
-              <iframe
-                src={
-                  isPDF || isDocOrSheet
-                    ? `https://docs.google.com/gview?url=${encodeURIComponent(file.url)}&embedded=true`
-                    : file.url
-                }
-                title="File Preview"
-                style={{
-                  width: '100%',
-                  height: isMobile ? '60vh' : '80vh',
-                  border: '1px solid #ccc',
-                  marginBottom: '16px',
-                }}
-                onError={() => setPreviewError(true)}
-              />
-            ) : (
-              fallbackLink
-            )}
-          </>
+        {isImage ? (
+          <img
+            src={file.url}
+            alt={file.filename}
+            style={{
+              width: '100%',
+              maxHeight: isMobile ? '50vh' : '70vh',
+              objectFit: 'contain',
+              marginBottom: '16px',
+            }}
+            onError={() => setPreviewError(true)}
+          />
+        ) : useGoogleDocs ? (
+          <iframe
+            src={iframeSrc}
+            title="File Preview"
+            style={{
+              width: '100%',
+              height: isMobile ? '60vh' : '80vh',
+              border: '1px solid #ccc',
+              marginBottom: '16px',
+            }}
+            onError={() => setPreviewError(true)}
+          />
+        ) : (
+          fallbackLink
         )}
 
-        {!isImage && (
-          <Button
-            onClick={handleSecureDownload}
-            disabled={loading || !file}
-            sx={{ mt: 2 }}
-            fullWidth={isMobile}
-            variant="outlined"
-          >
-            ⬇️ Secure Download
-          </Button>
-        )}
+        <Button
+          onClick={handleSecureDownload}
+          disabled={!file}
+          sx={{ mt: 2 }}
+          fullWidth={isMobile}
+          variant="outlined"
+        >
+          ⬇️ Secure Download
+        </Button>
       </Box>
     </Box>
   );

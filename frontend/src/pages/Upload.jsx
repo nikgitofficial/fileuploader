@@ -119,6 +119,31 @@ const Upload = () => {
     file.filename.toLowerCase().includes(search.toLowerCase())
   );
 
+ const handleSecureDownload = async (fileId, filename) => {
+  try {
+    const response = await axios.get(`/files/download/${fileId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      withCredentials: true,
+      responseType: 'blob',
+    });
+
+    const blob = new Blob([response.data]);
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(downloadUrl);
+    showSnackbar('✅ File downloaded successfully!');
+  } catch (err) {
+    console.error('❌ Secure download failed:', err);
+    showSnackbar('❌ Download failed', 'error');
+  }
+};
+
+
   return (
     <Box
       sx={{
@@ -217,15 +242,13 @@ const Upload = () => {
                           {new Date(f.createdAt || f.uploadedAt || f.updatedAt).toLocaleString()}
                         </TableCell>
                         <TableCell align="right">
-                          <IconButton
-                            onClick={() => {
-                              window.open(`${import.meta.env.VITE_API_BASE_URL}/files/download/${f._id}`, '_blank');
-                            }}
-                            color="primary"
-                            title="Download"
-                          >
-                            <DownloadIcon />
-                          </IconButton>
+                        <IconButton
+  onClick={() => handleSecureDownload(f._id, f.filename)}
+  color="primary"
+  title="Download"
+>
+  <DownloadIcon />
+</IconButton>
                           <IconButton
                             onClick={() => setEditDialog({
                               open: true,
