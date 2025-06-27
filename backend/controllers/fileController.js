@@ -152,8 +152,13 @@ export const downloadFile = async (req, res) => {
       return res.status(403).json({ error: 'Unauthorized access' });
     }
 
-    // Cloudinary: force download using fl_attachment:<filename>
-    const downloadUrl = file.url.replace('/upload/', `/upload/fl_attachment:${encodeURIComponent(file.filename)}/`);
+    // Ensure proper download URL
+    const fileFormat = file.url.includes('/raw/')
+      ? 'raw'
+      : file.type.startsWith('image/') ? 'image' : 'auto';
+
+    const downloadUrl = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/${fileFormat}/upload/fl_attachment:${encodeURIComponent(file.filename)}/${file.public_id}`;
+
     return res.redirect(downloadUrl);
   } catch (err) {
     console.error('❌ Download error:', err.message);

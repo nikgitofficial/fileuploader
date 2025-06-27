@@ -134,15 +134,14 @@ const Preview = () => {
                   onError={() => setPreviewError(true)}
                 />
                 <Button
-                  variant="outlined"
-                  href={`${file.url}?fl_attachment=true`}
-                  download={file.filename}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  fullWidth={isMobile}
-                >
-                  ⬇️ Download Image
-                </Button>
+  variant="outlined"
+  href={`/api/files/download/${file._id}`}
+  target="_blank"
+  rel="noopener noreferrer"
+  fullWidth={isMobile}
+>
+  ⬇️ Download Image
+</Button>
               </Box>
             ) : isPDF || isText || isDocOrSheet ? (
               <iframe
@@ -167,17 +166,16 @@ const Preview = () => {
         )}
 
         {!isImage && (
-          <Button
-            variant="outlined"
-            sx={{ mt: 2 }}
-            href={`${file.url}?fl_attachment=true`}
-            download={file.filename}
-            target="_blank"
-            rel="noopener noreferrer"
-            fullWidth={isMobile}
-          >
-            ⬇️ Download File
-          </Button>
+         <Button
+  variant="outlined"
+  sx={{ mt: 2 }}
+  href={`/api/files/download/${file._id}`}
+  target="_blank"
+  rel="noopener noreferrer"
+  fullWidth={isMobile}
+>
+  ⬇️ Download File
+</Button>
         )}
       </Box>
     </Box>
