@@ -141,7 +141,7 @@ export const getFileById = async (req, res) => {
   }
 };
 
-// 📥 Download File (Signed URL Response)
+// 📥 Download File (Cloudinary Signed URL)
 export const downloadFile = async (req, res) => {
   try {
     const file = await File.findById(req.params.id);
@@ -153,12 +153,16 @@ export const downloadFile = async (req, res) => {
 
     const resourceType = file.type.startsWith('image/') ? 'image' : 'raw';
 
-    const signedUrl = cloudinary.utils.download_url(file.public_id, {
-      resource_type: resourceType,
-      attachment: true, // Forces download with original filename
-      type: 'upload',
-      expires_at: Math.floor(Date.now() / 1000) + 60, // ⏱️ expires in 60 seconds
-    });
+    const signedUrl = cloudinary.utils.private_download_url(
+      file.public_id,
+      resourceType,
+      {
+        type: 'upload',
+        attachment: true,
+        expires_at: Math.floor(Date.now() / 1000) + 60, // 1-minute expiry
+        filename_override: file.filename,
+      }
+    );
 
     return res.status(200).json({ url: signedUrl });
   } catch (err) {
