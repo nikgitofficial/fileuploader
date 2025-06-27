@@ -17,17 +17,17 @@ const router = express.Router();
 // ✅ Upload file
 router.post('/upload', verifyToken, upload.single('file'), uploadFile);
 
+// ✅ Download file — must be BEFORE '/:id'
+router.get('/download/:id', downloadFile); // ← Optional: remove verifyToken for public download
+
 // ✅ List user's files
 router.get('/', verifyToken, getUserFiles);
 
 // ✅ Get file by ID (for preview)
-router.get('/:id', verifyToken, getFileById); // ✅ Add this route
+router.get('/:id', verifyToken, getFileById);
 
 // ✅ Delete file
 router.delete('/:id', verifyToken, deleteFile);
-
-// ✅ download filename
-router.get('/download/:id', verifyToken, downloadFile);
 
 // ✅ Update filename
 router.put('/:id', verifyToken, updateFileName);
