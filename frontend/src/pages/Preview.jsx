@@ -133,9 +133,9 @@ const Preview = () => {
                   }}
                   onError={() => setPreviewError(true)}
                 />
-                <Button
+ <Button
   variant="outlined"
-  href={`/api/files/download/${file._id}`}
+  href={`${import.meta.env.VITE_API_URL}/files/download/${file._id}`}
   target="_blank"
   rel="noopener noreferrer"
   fullWidth={isMobile}
@@ -166,10 +166,10 @@ const Preview = () => {
         )}
 
         {!isImage && (
-         <Button
+            <Button
   variant="outlined"
   sx={{ mt: 2 }}
-  href={`/api/files/download/${file._id}`}
+  href={`${import.meta.env.VITE_API_URL}/files/download/${file._id}`}
   target="_blank"
   rel="noopener noreferrer"
   fullWidth={isMobile}

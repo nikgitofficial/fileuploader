@@ -26,9 +26,11 @@ router.get('/:id', verifyToken, getFileById); // ✅ Add this route
 // ✅ Delete file
 router.delete('/:id', verifyToken, deleteFile);
 
-// ✅ Update filename
-router.put('/:id', verifyToken, updateFileName);
 // ✅ download filename
 router.get('/download/:id', verifyToken, downloadFile);
+
+// ✅ Update filename
+router.put('/:id', verifyToken, updateFileName);
+
 
 export default router;
