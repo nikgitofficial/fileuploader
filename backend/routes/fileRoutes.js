@@ -32,5 +32,15 @@ router.delete('/:id', verifyToken, deleteFile);
 // ✅ Update filename
 router.put('/:id', verifyToken, updateFileName);
 
+router.get('/folders', verifyToken, async (req, res) => {
+  try {
+    const folders = await File.distinct('folder', { userId: req.userId });
+    res.status(200).json(folders);
+  } catch (err) {
+    console.error('❌ Folder fetch error:', err);
+    res.status(500).json({ error: 'Failed to load folders' });
+  }
+});
+
 
 export default router;

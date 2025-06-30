@@ -5,7 +5,10 @@ const fileSchema = new mongoose.Schema({
   url: String,
   public_id: String,
   type: String,
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+  folder: {type:String,default:'root'},
+  userId: { type: mongoose.Schema.Types.ObjectId, 
+  ref: 'User',
+  required: true, }
 }, {
   timestamps: true // <-- this adds createdAt and updatedAt
 });

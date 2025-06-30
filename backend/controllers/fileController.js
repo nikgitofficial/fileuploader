@@ -6,29 +6,19 @@ import mongoose from 'mongoose';
 // 📤 Upload File Controller (FINALIZED)
 export const uploadFile = async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
-    }
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
-    // Turn multer buffer into a stream
-    const bufferToStream = buffer => {
-      const readable = new Readable();
-      readable.push(buffer);
-      readable.push(null);
-      return readable;
-    };
+    const folder = req.body.folder?.trim() || 'root';
 
-    // Use 'image' for images, otherwise let Cloudinary auto-detect type (PDF, docx, etc.)
     const resourceType = req.file.mimetype.startsWith('image/') ? 'image' : 'auto';
 
     const stream = cloudinary.uploader.upload_stream(
       {
         resource_type: resourceType,
-        folder: 'uploads',
+        folder: `uploads/${folder}`, // cloud folder
         use_filename: true,
         unique_filename: false,
         filename_override: req.file.originalname,
-        // removed `format`—so Cloudinary preserves the original extension
       },
       async (error, result) => {
         if (error) {
@@ -36,20 +26,23 @@ export const uploadFile = async (req, res) => {
           return res.status(500).json({ error: 'Upload failed' });
         }
 
-        // Save the file record in Mongo
         const file = await File.create({
           filename: req.file.originalname,
           url: result.secure_url,
           public_id: result.public_id,
           type: req.file.mimetype,
           userId: req.userId,
+          folder, // ← store in DB
         });
 
         res.status(201).json(file);
       }
     );
 
-    bufferToStream(req.file.buffer).pipe(stream);
+    const readable = new Readable();
+    readable.push(req.file.buffer);
+    readable.push(null);
+    readable.pipe(stream);
   } catch (err) {
     console.error('❌ Upload error:', err);
     res.status(500).json({ error: 'Upload failed' });
@@ -57,7 +50,6 @@ export const uploadFile = async (req, res) => {
 };
 
 
-   
    
 
 // 🗑️ Delete File Controller
@@ -107,7 +99,7 @@ export const getUserFiles = async (req, res) => {
     console.error('❌ Get files error:', err.message);
     res.status(500).json({ error: 'Failed to retrieve files' });
   }
-};
+};  
 
 // ✏️ Update Filename Controller
 export const updateFileName = async (req, res) => {
