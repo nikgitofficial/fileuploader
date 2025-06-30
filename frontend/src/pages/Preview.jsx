@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import axios from '../api/axios';
 import {
   Box, Typography, CircularProgress,
-  Button, useTheme, useMediaQuery
+  useTheme, useMediaQuery
 } from '@mui/material';
 
 export default function Preview() {
@@ -23,12 +23,7 @@ export default function Preview() {
           withCredentials: true
         });
 
-        // Correctly force .ext for Google Viewer / PDF previewing fallback
-        const ext = data.filename.split('.').pop().toLowerCase();
-        if (!data.url.includes(`.${ext}`)) {
-          data.url += `.${ext}`;
-        }
-
+        console.log('🔍 File URL:', data.url);
         setFile(data);
       } catch (e) {
         console.error('❌ File fetch error:', e);
@@ -56,32 +51,61 @@ export default function Preview() {
     }
   };
 
-  if (loading) return <CircularProgress />;
+  if (loading) {
+    return (
+      <Box
+        sx={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '100%',
+        maxWidth: 400,
+          height: '100vh',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'background.default',
+        }}
+      >
+        <CircularProgress size={60} color="success" />
+  <Typography mt={2} variant="body1" color="text.secondary">
+    Loading file preview...
+  </Typography>
+      </Box>
+    );
+  }
+
   if (!file) return <Typography>❌ File not found</Typography>;
 
   const ext = file.filename.split('.').pop().toLowerCase();
   const isImage = file.type.startsWith('image/');
-  const isPDF = file.type === 'application/pdf';
-  const isPreviewable = isImage || isPDF;
+  const isPreviewableDoc = ['pdf', 'docx', 'pptx', 'xlsx'].includes(ext);
+  const googleViewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(file.url)}&embedded=true`;
 
   return (
     <Box
       sx={{
         position: 'absolute',
-        top: isMobile ? 0 : '50%',
+        top: '50%',
         left: '50%',
-        transform: isMobile ? 'translateX(-50%)' : 'translate(-50%,-50%)',
+        transform: 'translate(-50%, -50%)',
         width: '100%',
+        maxWidth: 800,
+        minHeight: '100vh',
+        pt: isMobile ? theme.spacing(8) : 0,
         px: isMobile ? 1 : 4,
         py: isMobile ? 2 : 6,
-        maxHeight: '100vh',
-        overflowY: 'auto'
+        bgcolor: 'background.default',
+        display: 'flex',
+        alignItems: isMobile ? 'flex-start' : 'center',
+        justifyContent: 'center'
       }}
     >
       <Box
         sx={{
-          mx: 'auto',
-          maxWidth: 1000,
+          width: '100%',
+          maxWidth: isMobile ? '95vw' : '60vw',
           p: isMobile ? 2 : 4,
           bgcolor: 'background.paper',
           textAlign: 'center',
@@ -105,13 +129,18 @@ export default function Preview() {
               marginBottom: 16
             }}
           />
-        ) : isPDF && !previewError ? (
-          <embed
-            src={file.url}
-            type="application/pdf"
+        ) : isPreviewableDoc && !previewError ? (
+          <iframe
+            title="Document Preview"
+            src={googleViewerUrl}
             width="100%"
-            height={isMobile ? '60vh' : '80vh'}
+            height={isMobile ? '600vh' : '700vh'}
+            frameBorder="0"
             onError={() => setPreviewError(true)}
+            style={{
+              borderRadius: 8,
+              marginBottom: theme.spacing(2)
+            }}
           />
         ) : (
           <Typography mt={2}>
@@ -121,16 +150,6 @@ export default function Preview() {
             </a>
           </Typography>
         )}
-
-        <Button
-          onClick={handleSecureDownload}
-          disabled={!file}
-          fullWidth={isMobile}
-          variant="outlined"
-          sx={{ mt: 2 }}
-        >
-          ⬇️ Secure Download
-        </Button>
       </Box>
     </Box>
   );

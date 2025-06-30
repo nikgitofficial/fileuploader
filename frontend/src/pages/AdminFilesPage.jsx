@@ -22,7 +22,8 @@ import {
   Alert,
   Box,
   useMediaQuery,
-  useTheme
+  useTheme,
+  Tooltip
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -183,49 +184,57 @@ return (
                 </TableRow>
               </TableHead>
               <TableBody>
-                {files
-                  .filter((file) => {
-                    const keyword = filter.toLowerCase();
-                    return (
-                      file.filename.toLowerCase().includes(keyword) ||
-                      file.userId?.email?.toLowerCase().includes(keyword)
-                    );
-                  })
-                  .map((file) => (
-                    <TableRow key={file._id}>
-                      <TableCell sx={{ wordBreak: 'break-word' }}>
-                        <Link
-                          to={`/preview/${file._id}`}
-                          style={{
-                            color: 'black',
-                            textDecoration: 'underline',
-                            fontWeight: 500,
-                          }}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {file.filename}
-                        </Link>
-                      </TableCell>
-                      <TableCell>{file.userId?.email || 'Unknown'}</TableCell>
-                      <TableCell>{new Date(file.uploadedAt).toLocaleString()}</TableCell>
-                      <TableCell align="center">
-                        <IconButton onClick={() => handleEditOpen(file)} color="primary">
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton
-                          onClick={() => {
-                            setDeleteTarget(file);
-                            setDeleteOpen(true);
-                          }}
-                          color="error"
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-              </TableBody>
+  {files
+    .filter((file) => {
+      const keyword = filter.toLowerCase();
+      return (
+        file.filename.toLowerCase().includes(keyword) ||
+        file.userId?.email?.toLowerCase().includes(keyword)
+      );
+    })
+    .map((file) => (
+      <TableRow key={file._id}>
+        <TableCell sx={{ wordBreak: 'break-word' }}>
+          <Tooltip title="Click to preview/download using Google Docs" arrow>
+            <Link
+              to={`/preview/${file._id}`}
+              style={{
+                color: 'black',
+                textDecoration: 'underline',
+                fontWeight: 500,
+              }}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {file.filename}
+            </Link>
+          </Tooltip>
+        </TableCell>
+        <TableCell>{file.userId?.email || 'Unknown'}</TableCell>
+        <TableCell>{new Date(file.uploadedAt).toLocaleString()}</TableCell>
+        <TableCell align="center">
+          <Tooltip title="Click to rename file" arrow>
+            <IconButton onClick={() => handleEditOpen(file)} color="primary">
+              <EditIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Click to delete file" arrow>
+            <IconButton
+              onClick={() => {
+                setDeleteTarget(file);
+                setDeleteOpen(true);
+              }}
+              color="error"
+            >
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
+        </TableCell>
+      </TableRow>
+    ))}
+</TableBody>
+
+                     
             </Table>
           </TableContainer>
         </Box>

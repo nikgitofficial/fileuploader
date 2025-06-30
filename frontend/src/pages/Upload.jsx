@@ -1,16 +1,15 @@
-// Upload.jsx
 import React, { useEffect, useState } from 'react';
 import {
   Container, Typography, Button, Box,
-  TextField, IconButton, Table, TableBody,
+  IconButton, Table, TableBody,
   TableCell, TableContainer, TableHead, TableRow, Paper,
   CircularProgress, Snackbar, Dialog, DialogActions,
-  DialogContent, DialogContentText, DialogTitle
+  DialogContent, DialogContentText, DialogTitle, Tooltip,
+  TextField
 } from '@mui/material';
 import MuiAlert from '@mui/material/Alert';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import DownloadIcon from '@mui/icons-material/Download';
 import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
@@ -27,12 +26,15 @@ const Upload = () => {
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [search, setSearch] = useState('');
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [editDialog, setEditDialog] = useState({ open: false, id: '', oldName: '', newName: '' });
   const [deleteDialog, setDeleteDialog] = useState({ open: false, id: '' });
-  const [search, setSearch] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [editing, setEditing] = useState(false);
 
-  const navigate = useNavigate();
   const token = localStorage.getItem('token');
+  const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -45,12 +47,12 @@ const Upload = () => {
     try {
       const res = await axios.get('/files', {
         headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true
+        withCredentials: true,
       });
       setFiles(res.data);
     } catch (err) {
       console.error('❌ Error fetching files:', err);
-      showSnackbar('❌ Error fetching files', 'error');
+      showSnackbar('❌ Failed to fetch files', 'error');
     } finally {
       setLoading(false);
     }
@@ -61,223 +63,234 @@ const Upload = () => {
   }, []);
 
   const handleUpload = async (e) => {
-    e.preventDefault();
-    if (!file) return;
-    setUploading(true);
+  e.preventDefault();
+  if (!file) {
+    showSnackbar('❗ Please select a file', 'warning');
+    return;
+  }
 
-    const formData = new FormData();
-    formData.append('file', file);
+  const formData = new FormData();
+  formData.append('file', file);
+  setUploading(true);
 
-    try {
-      await axios.post('/files/upload', formData, {
-        headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true
-      });
+  // Simulate gradual progress
+  let simulatedProgress = 0;
+  const progressInterval = setInterval(() => {
+    simulatedProgress += 10; // increase by 10% each tick
+    if (simulatedProgress > 100) simulatedProgress = 100; // cap at 100%
+    // Simulate a realistic upload speed
+    if (simulatedProgress >= 90) {
+      clearInterval(progressInterval); // stop when near 100
+    }
+    setUploadProgress(simulatedProgress);
+  }, 100); // 100ms per tick
+
+  try {
+    await axios.post('/files/upload', formData, {
+      headers: { Authorization: `Bearer ${token}` },
+      withCredentials: true,
+    });
+
+    // Jump to 100% once uploaded
+    setUploadProgress(100);
+    setTimeout(() => {
+      setUploadProgress(0);
+      setUploading(false);
+      showSnackbar('✅ File uploaded!');
       setFile(null);
       e.target.reset();
       fetchFiles();
-      showSnackbar('✅ File uploaded successfully!');
-    } catch (err) {
-      console.error('❌ Upload error:', err);
-      showSnackbar('❌ Upload failed', 'error');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleEditSubmit = async () => {
-    try {
-      await axios.put(`/files/${editDialog.id}`, { filename: editDialog.newName }, {
-        headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true
-      });
-      setEditDialog({ open: false, id: '', oldName: '', newName: '' });
-      fetchFiles();
-      showSnackbar('✏️ Filename updated successfully!');
-    } catch (err) {
-      console.error('❌ Edit error:', err);
-      showSnackbar('❌ Failed to update filename', 'error');
-    }
-  };
-
-  const handleDelete = async () => {
-    try {
-      await axios.delete(`/files/${deleteDialog.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true
-      });
-      setDeleteDialog({ open: false, id: '' });
-      fetchFiles();
-      showSnackbar('🗑️ File deleted successfully');
-    } catch (err) {
-      console.error('❌ Delete error:', err);
-      showSnackbar('❌ Failed to delete file', 'error');
-    }
-  };
-
-  const filteredFiles = files.filter((file) =>
-    file.filename.toLowerCase().includes(search.toLowerCase())
-  );
-
- const handleSecureDownload = async (fileId, filename) => {
-  try {
-    const response = await axios.get(`/files/download/${fileId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-      withCredentials: true,
-      responseType: 'blob',
-    });
-
-    const blob = new Blob([response.data]);
-    const downloadUrl = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(downloadUrl);
-    showSnackbar('✅ File downloaded successfully!');
+    }, 500); // brief delay to show 100%
   } catch (err) {
-    console.error('❌ Secure download failed:', err);
-    showSnackbar('❌ Download failed', 'error');
+    console.error('❌ Upload failed:', err);
+    showSnackbar('❌ Upload failed', 'error');
+    clearInterval(progressInterval);
+    setUploading(false);
+    setUploadProgress(0);
   }
 };
 
+  
+
+  const handleEditSubmit = async () => {
+    setEditing(true);
+    try {
+      await axios.put(`/files/${editDialog.id}`, { filename: editDialog.newName }, {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      });
+      fetchFiles();
+      showSnackbar('✏️ Filename updated!');
+      setEditDialog({ open: false, id: '', oldName: '', newName: '' });
+    } catch (err) {
+      console.error('❌ Edit failed:', err);
+      showSnackbar('❌ Failed to rename file', 'error');
+    } finally {
+      setEditing(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    setDeleting(true);
+    try {
+      await axios.delete(`/files/${deleteDialog.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      });
+      fetchFiles();
+      showSnackbar('🗑️ File deleted');
+      setDeleteDialog({ open: false, id: '' });
+    } catch (err) {
+      console.error('❌ Delete failed:', err);
+      showSnackbar('❌ Failed to delete file', 'error');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const filteredFiles = files.filter((f) =>
+    f.filename.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <Box
-      sx={{
-        position: 'absolute',
-        top: isMobile ? '0' : '52%',
-        left: '50%',
-        transform: isMobile ? 'translateX(-50%)' : 'translate(-50%, -50%)',
-        width: '100%',
-        px: { xs: 1, sm: 4 },
-        py: { xs: 2, sm: 4 },
-        maxWidth: isMobile ? '98%' : 1000,
-        height: isMobile ? '100%' : 'auto',
-        overflowY: 'auto'
-      }}
-    >
-      <Container
-        sx={{
-          p: { xs: 2, sm: 4 },
-          backgroundColor: 'white',
-          boxShadow: 3,
-          borderRadius: 2,
-          textAlign: 'center',
-          minHeight: '70vh'
-        }}
-      >
-        <Typography variant="h6" align="center" gutterBottom>
-          📤 Upload a File
-        </Typography>
+    <Box sx={{
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: '100%',
+      maxWidth: 1000,
+      px: 2,
+      py: 3
+    }}>
+      <Container maxWidth="md" sx={{ background: '#fff', boxShadow: 3, borderRadius: 2, p: 3 }}>
+        <Typography variant="h5" gutterBottom align="center">📤 Upload a File</Typography>
 
         <form onSubmit={handleUpload}>
-          <TextField
+          <input
             type="file"
-            fullWidth
             onChange={(e) => setFile(e.target.files[0])}
-            inputProps={{ accept: '*' }}
+            style={{ marginBottom: '1rem' }}
           />
-          <Button
-            type="submit"
-            variant="contained"
-            fullWidth
-            disabled={uploading}
-            sx={{ mt: 2 }}
-          >
-            {uploading ? 'Uploading...' : 'Upload'}
-          </Button>
+         <Button
+  type="submit"
+  variant="contained"
+  fullWidth
+  disabled={uploading}
+  sx={{ height: 48 }}
+>
+  {uploading ? (
+    <Box sx={{ position: 'relative', width: 40, height: 40, mx: 'auto' }}>
+      <CircularProgress
+        variant="determinate"
+        value={uploadProgress}
+        size={40}
+        thickness={4}
+        sx={{
+          color: 'green',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+        }}
+      />
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Typography
+          variant="caption"
+          sx={{ fontWeight: 'bold', color: 'black' }}
+        >
+          {uploadProgress}%
+        </Typography>
+      </Box>
+    </Box>
+  ) : (
+    'Upload'
+  )}
+</Button>
+
         </form>
 
         <TextField
           fullWidth
+          label="Search files"
           variant="outlined"
-          placeholder="Search files by filename..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          sx={{ mt: 3 }}
           InputProps={{
-            startAdornment: <SearchIcon sx={{ mr: 1 }} />
+            startAdornment: <SearchIcon sx={{ mr: 1 }} />,
           }}
-          sx={{ mt: 4, mb: 2 }}
         />
 
-        <Typography variant="h6" gutterBottom>
-          📁 Your Files
-        </Typography>
+        <Typography variant="h6" sx={{ mt: 4 }}>📁 Uploaded Files</Typography>
 
         {loading ? (
-          <Box display="flex" justifyContent="center" alignItems="center" mt={4}>
-            <CircularProgress />
-          </Box>
+          <Box textAlign="center" mt={3}><CircularProgress /></Box>
         ) : filteredFiles.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">
-            No matching files found.
+          <Typography variant="body2" sx={{ mt: 2 }} color="text.secondary">
+            No files found.
           </Typography>
         ) : (
-          <Box sx={{ maxHeight: '60vh', overflowY: 'auto' }}>
-            <Box sx={{ overflowX: isMobile ? 'auto' : 'visible' }}>
-              <TableContainer component={Paper} elevation={3}>
-                <Table size={isMobile ? 'small' : 'medium'}>
-                  <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
-                    <TableRow>
-                      <TableCell><strong>Filename</strong></TableCell>
-                      <TableCell><strong>Uploaded At</strong></TableCell>
-                      <TableCell align="right"><strong>Actions</strong></TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {filteredFiles.map((f) => (
-                      <TableRow key={f._id} hover>
-                        <TableCell sx={{ wordBreak: 'break-word', maxWidth: { xs: 150, sm: 300 } }}>
-                          <Button
-                            onClick={() => navigate(`/preview/${f._id}`)}
-                            sx={{ textTransform: 'none', padding: 0 }}
-                          >
-                            {f.filename}
-                          </Button>
-                        </TableCell>
-                        <TableCell>
-                          {new Date(f.createdAt || f.uploadedAt || f.updatedAt).toLocaleString()}
-                        </TableCell>
-                        <TableCell align="right">
+          <TableContainer component={Paper} sx={{ mt: 2, maxHeight: 400 }}>
+            <Table size="small" stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Filename</TableCell>
+                  <TableCell>Uploaded At</TableCell>
+                  <TableCell align="right">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredFiles.map((f) => (
+                  <TableRow key={f._id}>
+                    <TableCell>
+                      <Tooltip title="Open file">
+                        <Button onClick={() => navigate(`/preview/${f._id}`)} sx={{ textTransform: 'none' }}>
+                          {f.filename}
+                        </Button>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell>{new Date(f.createdAt).toLocaleString()}</TableCell>
+                    <TableCell align="right">
+                      <Tooltip title="Rename">
                         <IconButton
-  onClick={() => handleSecureDownload(f._id, f.filename)}
-  color="primary"
-  title="Download"
->
-  <DownloadIcon />
-</IconButton>
-                          <IconButton
-                            onClick={() => setEditDialog({
-                              open: true,
-                              id: f._id,
-                              oldName: f.filename,
-                              newName: f.filename
-                            })}
-                            color="secondary"
-                            title="Edit"
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            onClick={() => setDeleteDialog({ open: true, id: f._id })}
-                            color="error"
-                            title="Delete"
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Box>
-          </Box>
+                          size="small"
+                          color="secondary"
+                          onClick={() =>
+                            setEditDialog({ open: true, id: f._id, oldName: f.filename, newName: f.filename })
+                          }
+                        >
+                          <EditIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => setDeleteDialog({ open: true, id: f._id })}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         )}
 
+        {/* Snackbar */}
         <Snackbar
           open={snackbar.open}
           autoHideDuration={3000}
@@ -295,11 +308,10 @@ const Upload = () => {
 
         {/* Edit Dialog */}
         <Dialog open={editDialog.open} onClose={() => setEditDialog({ ...editDialog, open: false })} fullWidth maxWidth="xs">
-          <DialogTitle>Edit Filename</DialogTitle>
+          <DialogTitle>Rename File</DialogTitle>
           <DialogContent>
             <TextField
               fullWidth
-              autoFocus
               margin="dense"
               label="New filename"
               value={editDialog.newName}
@@ -308,12 +320,18 @@ const Upload = () => {
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setEditDialog({ ...editDialog, open: false })}>Cancel</Button>
-            <Button onClick={handleEditSubmit} variant="contained">Save</Button>
+            <Button onClick={handleEditSubmit} variant="contained" disabled={editing}>
+              {editing ? <CircularProgress size={20} color="inherit" /> : 'Save'}
+            </Button>
           </DialogActions>
         </Dialog>
 
         {/* Delete Dialog */}
-        <Dialog open={deleteDialog.open} onClose={() => setDeleteDialog({ open: false, id: '' })} fullWidth maxWidth="xs">
+        <Dialog
+          open={deleteDialog.open}
+          onClose={() => setDeleteDialog({ open: false, id: '' })}
+          fullWidth maxWidth="xs"
+        >
           <DialogTitle>Confirm Delete</DialogTitle>
           <DialogContent>
             <DialogContentText>
@@ -321,8 +339,10 @@ const Upload = () => {
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setDeleteDialog({ open: false, id: '' })}>Cancel</Button>
-            <Button onClick={handleDelete} color="error" variant="contained">Delete</Button>
+            <Button onClick={() => setDeleteDialog({ open: false, id: '' })} disabled={deleting}>Cancel</Button>
+            <Button onClick={handleDeleteConfirm} color="error" variant="contained" disabled={deleting}>
+              {deleting ? <CircularProgress size={20} color="inherit" /> : 'Delete'}
+            </Button>
           </DialogActions>
         </Dialog>
       </Container>
