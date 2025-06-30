@@ -87,16 +87,14 @@ export default function Preview() {
               objectFit:'contain', marginBottom:16
             }}
           />
-        ) : isDoc && !previewError ? (
-          <iframe
-            title="Google Docs Preview"
-            src={file.url}
-            style={{
-              width:'100%', height:isMobile?'60vh':'80vh',
-              border:'none', marginBottom:16
-            }}
-            onError={() => setPreviewError(true)}
-          />
+        )  : isDoc && !previewError ? (
+  <embed
+    src={file.url}
+    type="application/pdf"
+    width="100%"
+    height={isMobile ? '60vh' : '80vh'}
+    onError={() => setPreviewError(true)}
+  />
         ) : (
           <Typography mt={2}>
             ⚠️ No preview available.{' '}

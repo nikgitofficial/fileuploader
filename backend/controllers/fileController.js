@@ -3,14 +3,13 @@ import File from '../models/File.js';
 import { Readable } from 'stream';
 import mongoose from 'mongoose';
 
-// 📤 Upload File Controller (FINALIZED)
+// 📤 Upload File Controller (FINALIZED for Preview Compatibility)
 export const uploadFile = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // Turn multer buffer into a stream
     const bufferToStream = buffer => {
       const readable = new Readable();
       readable.push(buffer);
@@ -18,17 +17,14 @@ export const uploadFile = async (req, res) => {
       return readable;
     };
 
-    // Use 'image' for images, otherwise let Cloudinary auto-detect type (PDF, docx, etc.)
-    const resourceType = req.file.mimetype.startsWith('image/') ? 'image' : 'auto';
-
     const stream = cloudinary.uploader.upload_stream(
       {
-        resource_type: resourceType,
+        resource_type: 'auto', // Let Cloudinary auto-detect
         folder: 'uploads',
         use_filename: true,
         unique_filename: false,
         filename_override: req.file.originalname,
-        // removed `format`—so Cloudinary preserves the original extension
+        flags: 'attachment:false' // Enable inline preview
       },
       async (error, result) => {
         if (error) {
@@ -36,12 +32,12 @@ export const uploadFile = async (req, res) => {
           return res.status(500).json({ error: 'Upload failed' });
         }
 
-        // Save the file record in Mongo
         const file = await File.create({
           filename: req.file.originalname,
           url: result.secure_url,
           public_id: result.public_id,
           type: req.file.mimetype,
+          resource_type: result.resource_type, // Save actual Cloudinary resource type
           userId: req.userId,
         });
 
@@ -55,10 +51,6 @@ export const uploadFile = async (req, res) => {
     res.status(500).json({ error: 'Upload failed' });
   }
 };
-
-
-   
-   
 
 // 🗑️ Delete File Controller
 export const deleteFile = async (req, res) => {
@@ -81,7 +73,7 @@ export const deleteFile = async (req, res) => {
     if (file.public_id) {
       try {
         await cloudinary.uploader.destroy(file.public_id, {
-          resource_type: file.type.startsWith('image/') ? 'image' : 'raw',
+          resource_type: file.resource_type || 'auto'
         });
       } catch (cloudErr) {
         console.warn('⚠️ Cloudinary delete failed:', cloudErr.message);
@@ -89,8 +81,6 @@ export const deleteFile = async (req, res) => {
     }
 
     await File.findByIdAndDelete(fileId);
-
-    console.log(`✅ Deleted file: ${file.filename} (${fileId})`);
     res.status(200).json({ message: 'File deleted successfully' });
   } catch (err) {
     console.error('❌ Delete error:', err.message);
@@ -133,9 +123,7 @@ export const updateFileName = async (req, res) => {
 export const getFileById = async (req, res) => {
   try {
     const file = await File.findById(req.params.id);
-    if (!file) {
-      return res.status(404).json({ error: 'File not found' });
-    }
+    if (!file) return res.status(404).json({ error: 'File not found' });
 
     if (file.userId.toString() !== req.userId) {
       return res.status(403).json({ error: 'Unauthorized access' });
@@ -148,7 +136,7 @@ export const getFileById = async (req, res) => {
   }
 };
 
-// 📥 Download File (Cloudinary Signed URL)
+// 📥 Download File (Signed URL)
 export const downloadFile = async (req, res) => {
   try {
     const file = await File.findById(req.params.id);
@@ -158,14 +146,12 @@ export const downloadFile = async (req, res) => {
       return res.status(403).json({ error: 'Unauthorized access' });
     }
 
-    const resourceType = file.type.startsWith('image/') ? 'image' : 'raw';
-
     const signedUrl = cloudinary.utils.private_download_url(
       file.public_id,
       null,
       {
         type: 'upload',
-        resource_type: resourceType,
+        resource_type: file.resource_type || 'auto',
         attachment: true,
         expires_at: Math.floor(Date.now() / 1000) + 60,
         filename_override: file.filename,
