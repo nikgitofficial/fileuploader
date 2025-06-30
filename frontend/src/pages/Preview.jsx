@@ -18,20 +18,10 @@ export default function Preview() {
   useEffect(() => {
     (async () => {
       try {
-        // 1. Get file metadata
         const { data } = await axios.get(`/files/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true
         });
-
-        // 2. Get signed preview URL
-        const previewRes = await axios.get(`/files/preview-url/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-          withCredentials: true
-        });
-
-        // 3. Attach signed URL for preview
-        data.url = previewRes.data.url;
         setFile(data);
       } catch (e) {
         console.error(e);
