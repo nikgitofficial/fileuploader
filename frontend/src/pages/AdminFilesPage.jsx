@@ -183,7 +183,8 @@ return (
                   <TableCell align="center"><strong>Actions</strong></TableCell>
                 </TableRow>
               </TableHead>
-              <TableBody>
+        
+            <TableBody>
   {files
     .filter((file) => {
       const keyword = filter.toLowerCase();
@@ -193,9 +194,18 @@ return (
       );
     })
     .map((file) => (
-      <TableRow key={file._id}>
+      <TableRow
+        key={file._id}
+        hover
+        sx={{
+          cursor: 'pointer',
+          '&:hover': {
+            backgroundColor: '#f5f5f5',
+          },
+        }}
+      >
         <TableCell sx={{ wordBreak: 'break-word' }}>
-          <Tooltip title="Click to preview/download using Google Docs" arrow>
+          <Tooltip title="Open file" arrow>
             <Link
               to={`/preview/${file._id}`}
               style={{
@@ -213,12 +223,12 @@ return (
         <TableCell>{file.userId?.email || 'Unknown'}</TableCell>
         <TableCell>{new Date(file.uploadedAt).toLocaleString()}</TableCell>
         <TableCell align="center">
-          <Tooltip title="Click to rename file" arrow>
+          <Tooltip title="rename " arrow>
             <IconButton onClick={() => handleEditOpen(file)} color="primary">
               <EditIcon />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Click to delete file" arrow>
+          <Tooltip title=" delete " arrow>
             <IconButton
               onClick={() => {
                 setDeleteTarget(file);

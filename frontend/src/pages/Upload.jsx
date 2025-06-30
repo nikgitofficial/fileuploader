@@ -250,42 +250,53 @@ const Upload = () => {
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
-              <TableBody>
-                {filteredFiles.map((f) => (
-                  <TableRow key={f._id}>
-                    <TableCell>
-                      <Tooltip title="Open file">
-                        <Button onClick={() => navigate(`/preview/${f._id}`)} sx={{ textTransform: 'none' }}>
-                          {f.filename}
-                        </Button>
-                      </Tooltip>
-                    </TableCell>
-                    <TableCell>{new Date(f.createdAt).toLocaleString()}</TableCell>
-                    <TableCell align="right">
-                      <Tooltip title="Rename">
-                        <IconButton
-                          size="small"
-                          color="secondary"
-                          onClick={() =>
-                            setEditDialog({ open: true, id: f._id, oldName: f.filename, newName: f.filename })
-                          }
-                        >
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => setDeleteDialog({ open: true, id: f._id })}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
+             
+                     <TableBody>
+  {filteredFiles.map((f) => (
+    <TableRow
+      key={f._id}
+      hover
+      sx={{
+        cursor: 'pointer',
+        '&:hover': {
+          backgroundColor: '#f5f5f5',
+        },
+      }}
+    >
+      <TableCell>
+        <Tooltip title="Open file">
+          <Button onClick={() => navigate(`/preview/${f._id}`)} sx={{ textTransform: 'none' }}>
+            {f.filename}
+          </Button>
+        </Tooltip>
+      </TableCell>
+      <TableCell>{new Date(f.createdAt).toLocaleString()}</TableCell>
+      <TableCell align="right">
+        <Tooltip title="Rename">
+          <IconButton
+            size="small"
+            color="secondary"
+            onClick={() =>
+              setEditDialog({ open: true, id: f._id, oldName: f.filename, newName: f.filename })
+            }
+          >
+            <EditIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Delete">
+          <IconButton
+            size="small"
+            color="error"
+            onClick={() => setDeleteDialog({ open: true, id: f._id })}
+          >
+            <DeleteIcon />
+          </IconButton>
+        </Tooltip>
+      </TableCell>
+    </TableRow>
+  ))}
+</TableBody>
+
             </Table>
           </TableContainer>
         )}
