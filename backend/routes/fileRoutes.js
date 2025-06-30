@@ -13,6 +13,9 @@ router.post('/upload', verifyToken, upload.single('file'), uploadFile);
 // ✅ List user's files
 router.get('/', verifyToken, getUserFiles);
 
+// ✅ Get a single file by ID (used in Preview.jsx)
+router.get('/:id', verifyToken, getFileById);
+
 // ✅ Delete file
 router.delete('/:id', verifyToken, deleteFile);
 

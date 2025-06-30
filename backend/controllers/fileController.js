@@ -52,6 +52,27 @@ export const uploadFile = async (req, res) => {
     res.status(500).json({ error: 'Upload failed' });
   }
 };
+export const getFileById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid file ID' });
+    }
+
+    const file = await File.findById(id);
+    if (!file) return res.status(404).json({ error: 'File not found' });
+
+    if (file.userId.toString() !== req.userId) {
+      return res.status(403).json({ error: 'Unauthorized access' });
+    }
+
+    res.status(200).json(file);
+  } catch (err) {
+    console.error('❌ Get file by ID error:', err.message);
+    res.status(500).json({ error: 'Failed to retrieve file' });
+  }
+};
 
 // 🗑️ Delete File Controller
 export const deleteFile = async (req, res) => {

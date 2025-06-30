@@ -11,6 +11,7 @@ export default function Preview() {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [previewError, setPreviewError] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   const token = localStorage.getItem('token');
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -25,6 +26,17 @@ export default function Preview() {
         setFile(data);
       } catch (e) {
         console.error('❌ Failed to fetch file:', e);
+        if (e.response) {
+          if (e.response.status === 404) {
+            setErrorMsg('❌ File not found.');
+          } else if (e.response.status === 403) {
+            setErrorMsg('⛔ You do not have access to this file.');
+          } else {
+            setErrorMsg('❌ Failed to load file.');
+          }
+        } else {
+          setErrorMsg('❌ Server unreachable.');
+        }
       } finally {
         setLoading(false);
       }
@@ -47,7 +59,7 @@ export default function Preview() {
   };
 
   if (loading) return <CircularProgress />;
-  if (!file) return <Typography>❌ File not found</Typography>;
+  if (!file) return <Typography mt={2}>{errorMsg || '❌ File not found'}</Typography>;
 
   const ext = file.filename.split('.').pop().toLowerCase();
   const isImage = file.type.startsWith('image/');
