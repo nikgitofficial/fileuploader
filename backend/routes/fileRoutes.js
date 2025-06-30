@@ -1,6 +1,6 @@
 import express from 'express';
 import {
-  uploadFile,getUserFiles,deleteFile,updateFileName,} from '../controllers/fileController.js';
+  uploadFile,getUserFiles,deleteFile,updateFileName,getFileById} from '../controllers/fileController.js';
 
 import { verifyToken } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
