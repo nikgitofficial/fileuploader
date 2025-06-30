@@ -5,8 +5,8 @@ import {
   deleteFile,
   updateFileName,
   getFileById,
-  downloadFile,  
-  getFilePreview,
+ 
+ 
   
 } from '../controllers/fileController.js';
 
