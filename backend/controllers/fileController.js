@@ -3,14 +3,13 @@ import File from '../models/File.js';
 import { Readable } from 'stream';
 import mongoose from 'mongoose';
 
-// 📤 Upload File Controller (FINALIZED)
+// 📤 Upload File Controller (PUBLIC UPLOADS for Preview)
 export const uploadFile = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // Turn multer buffer into a stream
     const bufferToStream = buffer => {
       const readable = new Readable();
       readable.push(buffer);
@@ -18,8 +17,7 @@ export const uploadFile = async (req, res) => {
       return readable;
     };
 
-    // Use 'image' for images, otherwise let Cloudinary auto-detect type (PDF, docx, etc.)
-    const resourceType = req.file.mimetype.startsWith('image/') ? 'image' : 'auto';
+    const resourceType = req.file.mimetype.startsWith('image/') ? 'image' : 'raw';
 
     const stream = cloudinary.uploader.upload_stream(
       {
@@ -28,7 +26,7 @@ export const uploadFile = async (req, res) => {
         use_filename: true,
         unique_filename: false,
         filename_override: req.file.originalname,
-        // removed `format`—so Cloudinary preserves the original extension
+        // ✅ Let Cloudinary keep the file public by default
       },
       async (error, result) => {
         if (error) {
@@ -36,7 +34,6 @@ export const uploadFile = async (req, res) => {
           return res.status(500).json({ error: 'Upload failed' });
         }
 
-        // Save the file record in Mongo
         const file = await File.create({
           filename: req.file.originalname,
           url: result.secure_url,
@@ -55,10 +52,6 @@ export const uploadFile = async (req, res) => {
     res.status(500).json({ error: 'Upload failed' });
   }
 };
-
-
-   
-   
 
 // 🗑️ Delete File Controller
 export const deleteFile = async (req, res) => {
@@ -126,85 +119,5 @@ export const updateFileName = async (req, res) => {
   } catch (err) {
     console.error('❌ Edit error:', err);
     res.status(500).json({ error: 'Failed to update file' });
-  }
-};
-
-// 📄 Get File by ID (for preview)
-export const getFileById = async (req, res) => {
-  try {
-    const file = await File.findById(req.params.id);
-    if (!file) {
-      return res.status(404).json({ error: 'File not found' });
-    }
-
-    if (file.userId.toString() !== req.userId) {
-      return res.status(403).json({ error: 'Unauthorized access' });
-    }
-
-    res.status(200).json(file);
-  } catch (err) {
-    console.error('❌ Get file by ID error:', err.message);
-    res.status(500).json({ error: 'Failed to retrieve file' });
-  }
-};
-
-// 📥 Download File (Cloudinary Signed URL)
-export const downloadFile = async (req, res) => {
-  try {
-    const file = await File.findById(req.params.id);
-    if (!file) return res.status(404).json({ error: 'File not found' });
-
-    if (file.userId.toString() !== req.userId) {
-      return res.status(403).json({ error: 'Unauthorized access' });
-    }
-
-    const resourceType = file.type.startsWith('image/') ? 'image' : 'raw';
-
-    const signedUrl = cloudinary.utils.private_download_url(
-      file.public_id,
-      null,
-      {
-        type: 'upload',
-        resource_type: resourceType,
-        attachment: true,
-        expires_at: Math.floor(Date.now() / 1000) + 60,
-        filename_override: file.filename,
-      }
-    );
-
-    return res.status(200).json({ url: signedUrl });
-  } catch (err) {
-    console.error('❌ Download error:', err.message);
-    res.status(500).json({ error: 'Failed to generate download link' });
-  }
-};
-
-// 📄 Get Signed Preview URL (for iframe)
-export const getFilePreview = async (req, res) => {
-  try {
-    const file = await File.findById(req.params.id);
-    if (!file) return res.status(404).json({ error: 'File not found' });
-
-    if (file.userId.toString() !== req.userId) {
-      return res.status(403).json({ error: 'Unauthorized access' });
-    }
-
-    const resourceType = file.type.startsWith('image/') ? 'image' : 'raw';
-
-    const signedUrl = cloudinary.utils.private_download_url(
-      file.public_id,
-      null,
-      {
-        type: 'upload',
-        resource_type: resourceType,
-        attachment: false,
-        expires_at: Math.floor(Date.now() / 1000) + 60 * 5 // valid for 5 mins
-      }
-    );
-
-    res.status(200).json({ url: signedUrl });
-  } catch (err) {
-    console.error('❌ Preview URL error:', err.message);
-    res.status(500).json({ error: 'Failed to generate preview link' });
   }
 };
