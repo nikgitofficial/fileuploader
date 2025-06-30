@@ -19,12 +19,12 @@ export const uploadFile = async (req, res) => {
 
     const stream = cloudinary.uploader.upload_stream(
       {
-        resource_type: 'auto', // Let Cloudinary auto-detect
+        resource_type: req.file.mimetype.startsWith('image/') ? 'image' : 'raw',
         folder: 'uploads',
         use_filename: true,
         unique_filename: false,
-        filename_override: req.file.originalname,
-        type: 'upload',
+        public_id: `uploads/${req.file.originalname.split('.').slice(0, -1).join('.')}`,
+        access_mode: 'public',
         
       },
       async (error, result) => {
