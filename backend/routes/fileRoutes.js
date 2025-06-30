@@ -4,7 +4,7 @@ import {
   getUserFiles,
   deleteFile,
   updateFileName,
-  getFileById,
+  
  
  
   
@@ -27,8 +27,8 @@ router.get('/download/:id',verifyToken, downloadFile); // ← Optional: remove v
 // ✅ List user's files
 router.get('/', verifyToken, getUserFiles);
 
-// ✅ Get file by ID (for preview)
-router.get('/:id', verifyToken, getFileById);
+
+
 
 // ✅ Delete file
 router.delete('/:id', verifyToken, deleteFile);
