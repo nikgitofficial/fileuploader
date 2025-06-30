@@ -50,7 +50,7 @@ export const sendOtpEmail = async (to, otp) => {
           If you did not request this, please ignore this email.
         </p>
         <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;" />
-        <p style="font-size: 12px; color: #999;">&copy; ${new Date().getFullYear()} Nickpacs123. All rights reserved.</p>
+        <p style="font-size: 12px; color: #999;">&copy; ${new Date().getFullYear()} NikTech123. All rights reserved.</p>
       </div>
     `,
   };
