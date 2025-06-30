@@ -5,7 +5,8 @@ import {
   deleteFile,
   updateFileName,
   getFileById,
-  downloadFile
+  downloadFile,  
+  getFilePreview,
   
 } from '../controllers/fileController.js';
 
@@ -16,6 +17,9 @@ const router = express.Router();
 
 // ✅ Upload file
 router.post('/upload', verifyToken, upload.single('file'), uploadFile);
+
+// 📄 Get Signed Preview URL (for iframe)
+router.get('/files/preview-url/:id', verifyToken, getFilePreview);
 
 // ✅ Download file — must be BEFORE '/:id'
 router.get('/download/:id',verifyToken, downloadFile); // ← Optional: remove verifyToken for public download
@@ -31,6 +35,8 @@ router.delete('/:id', verifyToken, deleteFile);
 
 // ✅ Update filename
 router.put('/:id', verifyToken, updateFileName);
+
+
 
 
 export default router;

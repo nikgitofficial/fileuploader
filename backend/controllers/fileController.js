@@ -178,3 +178,33 @@ export const downloadFile = async (req, res) => {
     res.status(500).json({ error: 'Failed to generate download link' });
   }
 };
+
+// 📄 Get Signed Preview URL (for iframe)
+export const getFilePreview = async (req, res) => {
+  try {
+    const file = await File.findById(req.params.id);
+    if (!file) return res.status(404).json({ error: 'File not found' });
+
+    if (file.userId.toString() !== req.userId) {
+      return res.status(403).json({ error: 'Unauthorized access' });
+    }
+
+    const resourceType = file.type.startsWith('image/') ? 'image' : 'raw';
+
+    const signedUrl = cloudinary.utils.private_download_url(
+      file.public_id,
+      null,
+      {
+        type: 'upload',
+        resource_type: resourceType,
+        attachment: false,
+        expires_at: Math.floor(Date.now() / 1000) + 60 * 5 // valid for 5 mins
+      }
+    );
+
+    res.status(200).json({ url: signedUrl });
+  } catch (err) {
+    console.error('❌ Preview URL error:', err.message);
+    res.status(500).json({ error: 'Failed to generate preview link' });
+  }
+};

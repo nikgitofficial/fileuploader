@@ -18,15 +18,20 @@ export default function Preview() {
   useEffect(() => {
     (async () => {
       try {
+        // 1. Get file metadata
         const { data } = await axios.get(`/files/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true
         });
-        // ensure URL ends in .ext so Google viewer can fetch it
-        const ext = data.filename.split('.').pop().toLowerCase();
-        if (!data.url.endsWith(`.${ext}`)) {
-          data.url = `${data.url}.${ext}`;
-        }
+
+        // 2. Get signed preview URL
+        const previewRes = await axios.get(`/files/preview-url/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true
+        });
+
+        // 3. Attach signed URL for preview
+        data.url = previewRes.data.url;
         setFile(data);
       } catch (e) {
         console.error(e);
@@ -39,7 +44,8 @@ export default function Preview() {
   const handleSecureDownload = async () => {
     try {
       const { data } = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/files/download/${file._id}`, {
+        `${import.meta.env.VITE_API_URL}/api/files/download/${file._id}`,
+        {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true
         }
@@ -51,29 +57,38 @@ export default function Preview() {
   };
 
   if (loading) return <CircularProgress />;
-  if (!file)   return <Typography>❌ File not found</Typography>;
+  if (!file) return <Typography>❌ File not found</Typography>;
 
-  const ext      = file.filename.split('.').pop().toLowerCase();
-  const isImage  = file.type.startsWith('image/');
-  const isDoc    = ['pdf','docx','pptx','xlsx'].includes(ext);
+  const ext = file.filename.split('.').pop().toLowerCase();
+  const isImage = file.type.startsWith('image/');
+  const isDoc = ['pdf', 'docx', 'pptx', 'xlsx'].includes(ext);
 
   return (
     <Box
       sx={{
-        position: 'absolute', top: isMobile ? 0 : '50%',
-        left: '50%', transform: isMobile
-          ? 'translateX(-50%)'
-          : 'translate(-50%,-50%)',
-        width: '100%', px: isMobile ? 1 : 4, py: isMobile ? 2 : 6,
-        maxHeight: '100vh', overflowY: 'auto'
-      }}>
+        position: 'absolute',
+        top: isMobile ? 0 : '50%',
+        left: '50%',
+        transform: isMobile ? 'translateX(-50%)' : 'translate(-50%,-50%)',
+        width: '100%',
+        px: isMobile ? 1 : 4,
+        py: isMobile ? 2 : 6,
+        maxHeight: '100vh',
+        overflowY: 'auto'
+      }}
+    >
       <Box
         sx={{
-          mx: 'auto', maxWidth: 1000, p: isMobile ? 2 : 4,
-          bgcolor: 'background.paper', textAlign: 'center',
-          borderRadius: 2, boxShadow: 3
-        }}>
-        <Typography variant={isMobile ? 'h6':'h5'} gutterBottom>
+          mx: 'auto',
+          maxWidth: 1000,
+          p: isMobile ? 2 : 4,
+          bgcolor: 'background.paper',
+          textAlign: 'center',
+          borderRadius: 2,
+          boxShadow: 3
+        }}
+      >
+        <Typography variant={isMobile ? 'h6' : 'h5'} gutterBottom>
           {file.filename}
         </Typography>
 
@@ -83,8 +98,10 @@ export default function Preview() {
             alt={file.filename}
             onError={() => setPreviewError(true)}
             style={{
-              width:'100%', maxHeight:isMobile?'50vh':'70vh',
-              objectFit:'contain', marginBottom:16
+              width: '100%',
+              maxHeight: isMobile ? '50vh' : '70vh',
+              objectFit: 'contain',
+              marginBottom: 16
             }}
           />
         ) : isDoc && !previewError ? (
@@ -92,8 +109,10 @@ export default function Preview() {
             title="Google Docs Preview"
             src={`https://docs.google.com/viewer?url=${encodeURIComponent(file.url)}&embedded=true`}
             style={{
-              width:'100%', height:isMobile?'60vh':'80vh',
-              border:'none', marginBottom:16
+              width: '100%',
+              height: isMobile ? '60vh' : '80vh',
+              border: 'none',
+              marginBottom: 16
             }}
             onError={() => setPreviewError(true)}
           />
@@ -111,7 +130,7 @@ export default function Preview() {
           disabled={!file}
           fullWidth={isMobile}
           variant="outlined"
-          sx={{ mt:2 }}
+          sx={{ mt: 2 }}
         >
           ⬇️ Secure Download
         </Button>
