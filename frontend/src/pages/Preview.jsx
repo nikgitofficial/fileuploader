@@ -24,7 +24,7 @@ export default function Preview() {
         });
         setFile(data);
       } catch (e) {
-        console.error(e);
+        console.error('❌ Failed to fetch file:', e);
       } finally {
         setLoading(false);
       }
@@ -42,7 +42,7 @@ export default function Preview() {
       );
       window.open(data.url, '_blank');
     } catch (e) {
-      console.error(e);
+      console.error('❌ Download failed:', e);
     }
   };
 
@@ -96,7 +96,7 @@ export default function Preview() {
           />
         ) : isDoc && !previewError ? (
           <iframe
-            title="Google Docs Preview"
+            title="Document Preview"
             src={`https://docs.google.com/viewer?url=${encodeURIComponent(file.url)}&embedded=true`}
             style={{
               width: '100%',
