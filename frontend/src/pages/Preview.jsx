@@ -90,7 +90,7 @@ export default function Preview() {
         ) : isDoc && !previewError ? (
           <iframe
             title="Google Docs Preview"
-            src={`https://docs.google.com/viewer?url=${encodeURIComponent(file.url)}&embedded=true`}
+            src={file.url}
             style={{
               width:'100%', height:isMobile?'60vh':'80vh',
               border:'none', marginBottom:16
