@@ -19,7 +19,7 @@ const router = express.Router();
 router.post('/upload', verifyToken, upload.single('file'), uploadFile);
 
 // 📄 Get Signed Preview URL (for iframe)
-router.get('/files/preview-url/:id', verifyToken, getFilePreview);
+router.get('/preview-url/:id', verifyToken, getFilePreview);
 
 // ✅ Download file — must be BEFORE '/:id'
 router.get('/download/:id',verifyToken, downloadFile); // ← Optional: remove verifyToken for public download
