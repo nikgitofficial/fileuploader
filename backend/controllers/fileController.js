@@ -24,7 +24,8 @@ export const uploadFile = async (req, res) => {
         use_filename: true,
         unique_filename: false,
         filename_override: req.file.originalname,
-        flags: 'attachment:false' // Enable inline preview
+        type: 'upload',
+        
       },
       async (error, result) => {
         if (error) {
